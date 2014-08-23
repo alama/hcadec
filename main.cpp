@@ -10,14 +10,16 @@
 //--------------------------------------------------
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <iostream>
 #include <string>
 #include <stdio.h>
 #include "clHCA.h"
 #include "Path.h"
 
 //--------------------------------------------------
-//	SCREW THE RULES
+//	~~~~~~~~~~~~~SCREW THE RULES~~~~~~~~~~~~~~~~~~~
 //--------------------------------------------------
+using namespace std;
 bool scan = false;
 
 //--------------------------------------------------
@@ -72,6 +74,7 @@ bool HCAtoWAV(char *filenameIn, char *filenameOut, unsigned int ciphKey1, unsign
 //--------------------------------------------------
 int main(int argc, char* argv[])
 {
+	// This stuff speeds up std::cout by quite a bit
 	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
 		abort();
 	if (setvbuf(stderr, 0, _IOLBF, 4096) != 0)
@@ -108,7 +111,7 @@ int main(int argc, char* argv[])
 					continue;
 
 				case 's':
-					scan = true;
+					scan = !scan;
 					continue;
 				}
 			}
@@ -118,7 +121,8 @@ int main(int argc, char* argv[])
 			// 入力チェック
 			if (filenameIn.empty())
 			{
-				wprintf(L"Error: 入力ファイルを指定してください。\n");
+				wprintf(L"Error: 入力ファイルを指定してください。");
+				cout << endl;
 				system("pause");
 				return -1;
 			}
@@ -129,11 +133,26 @@ int main(int argc, char* argv[])
 			// デコード
 			if (!HCAtoWAV((char*)filenameIn.c_str(), (char*)filenameOut.c_str(), ciphKey1, ciphKey2))
 			{
-				wprintf(L"Error: HCAファイルのデコードに失敗しました。\n");
+				wprintf(L"Error: HCAファイルのデコードに失敗しました。");
+				cout << endl;
 				system("pause");
 				return -1;
 			}
 		}
+	}
+	else
+	{
+		cout << "Usage:" << endl;
+		cout << '\t' << Path::Filename(argv[0]) << " [parameters] file [parameters] file2 [...]" << endl;
+		
+		cout << "\nParameters:" << endl;
+		cout << "\t-s"
+			<< "\tToggles scan mode on the next file."
+			<< "\n\t\tUsed for searching archives for SEGA HCAs."
+			<< endl << endl;
+		cout << "\t-o"
+			<< "\tSets a custom output filename for the next file."
+			<< endl;
 	}
 
 	system("pause");

@@ -38,60 +38,64 @@ bool clHCA::CheckFile(void *data)
 	return (data && (*(unsigned int *)data & 0x7F7F7F7F) == 0x00414348);
 }
 
-const int32_t ReadSize = 4 * 1024;
+const int32_t ReadSize = 128*1024;
 const uint8_t header[4] = { 0xC8, 0xC3, 0xC1, 0x00 };
+uint32_t FileSize = 0;
 uint32_t instance = 0;
 
 void scanFile(FILE* file)
 {
-	int32_t readSize = ReadSize;
+	uint8_t* buffer = new uint8_t[ReadSize];
 	bool done = false;
-	uint8_t* buffer = new uint8_t[readSize]();
-	int32_t readBytes = 0;
+	bool eof = false;
 
 	do
 	{
-		if (feof(file))
+		eof = ((FileSize - ftell(file)) == 0);
+
+		if (feof(file) || eof)
 			break;
 
-		readBytes = fread(buffer, sizeof(char), readSize, file);
+		uint32_t readBytes;
+		if ((FileSize - ftell(file)) < ReadSize)
+			readBytes = fread(buffer, sizeof(char), (FileSize - ftell(file)), file);
+		else
+			readBytes = fread(buffer, sizeof(char), ReadSize, file);
+		
 
 		if (readBytes == 0)
-			throw;
+		{
+			delete[] buffer;
+			return;
+		}
 
-		for (int i = 0; i < readBytes; i++)
+		for (uint32_t i = 0; i < readBytes; i++)
 		{
 			if (buffer[i] == header[0])
 			{
-				//cout << "FILE/ARRAY: " << ftell(file) << " " << i << ' ' << hex << (uint16_t)buffer[i] << " == " << (uint16_t)header[0] << dec << endl;
-				if ((readSize - i) < 4)
+				if ((readBytes - i) < sizeof(header))
 				{
-					fseek(file, -(readSize - i), SEEK_CUR);
+					fseek(file, -(readBytes - i), SEEK_CUR);
 					break;
 				}
-				else if (memcmp(&buffer[i], &header, sizeof(char) * 4) == 0)
+
+				else if (memcmp(&buffer[i], &header, sizeof(header)) == 0)
 				{
 					++instance;
-					uint32_t last = ftell(file);
-					fseek(file, -(readSize - i), SEEK_CUR);
 					
-					cout << "DATA/OFF/INST/SEEK/LAST/CURR: 0x" << hex;
-					for (uint32_t x = i; x < (i + sizeof(header)); x++)
-						cout << (uint16_t)buffer[x];
-					cout << dec << " | ";
-
-					cout << hex << (ftell(file) - (readSize - i))
-						<< dec << ' ' << instance << ' ' << (readSize - i) << ' '
-						<< hex << last << ' ' << ftell(file)
-						<< dec << endl;
-
+					cout << hex << ftell(file) << dec << " -" << (readBytes - i) << ' ';
+					
+					fseek(file, -(readBytes - i), SEEK_CUR);
+					
+					cout << "Match instance " << instance << " at offset " << hex << ftell(file) << dec << endl;
+					
 					done = true;
 					break;
 				}
 			}
 		}
-	} while (!done);
 
+	} while (!done);
 
 	delete[] buffer;
 }
@@ -111,6 +115,11 @@ bool clHCA::Decode(const char* filename, const char* filenameWAV, const bool sca
 	FILE *fp, *fp2;
 	if (fopen_s(&fp, filename, "rb"))
 		return false;
+
+	fseek(fp, 0, SEEK_END);
+	FileSize = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+
 	do
 	{
 		if (scan && feof(fp))
@@ -132,11 +141,14 @@ bool clHCA::Decode(const char* filename, const char* filenameWAV, const bool sca
 
 		// ヘッダを解析
 		unsigned char data[0x800];
-		fread(data, sizeof(data), 1, fp);
+		fread(data, sizeof(char), 0x800, fp);
 		if (!Decode(fp2, data, sizeof(data), 0))
 		{
-			fclose(fp2); fclose(fp); return false;
+			fclose(fp2);
+			fclose(fp);
+			return false;
 		}
+
 		//fseek(fp,(int)_dataOffset-0x200,SEEK_CUR);
 		fseek(fp, (int)_dataOffset - 0x800, SEEK_CUR);
 
@@ -246,8 +258,9 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 		}
 		else
 		{
-			cout << hex << (*(unsigned int *)s & 0x7F7F7F7F) << " == " << 0x00414348 << dec << endl;
-			cout << hex << (*(unsigned int *)s) << " == " << 0x00414348 << dec << endl;
+			cout << "DECODE FAILURE:\n\t";
+			cout <<"DATA:\t" <<  hex << *(unsigned int *)s << dec << "\n\t";
+			cout << "OFFSET:\t" << ftell(fp) << endl;
 			return false;
 		}
 
