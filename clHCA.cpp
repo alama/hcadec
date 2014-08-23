@@ -4,6 +4,12 @@
 //--------------------------------------------------
 #include "clHCA.h"
 #include <memory.h>
+#include <cstdint>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include "Path.h"
+using namespace std;
 
 //--------------------------------------------------
 // インライン関数
@@ -32,11 +38,70 @@ bool clHCA::CheckFile(void *data)
 	return (data && (*(unsigned int *)data & 0x7F7F7F7F) == 0x00414348);
 }
 
+const int32_t ReadSize = 4 * 1024;
+const uint8_t header[4] = { 0xC8, 0xC3, 0xC1, 0x00 };
+uint32_t instance = 0;
+
+void scanFile(FILE* file)
+{
+	int32_t readSize = ReadSize;
+	bool done = false;
+	uint8_t* buffer = new uint8_t[readSize]();
+	int32_t readBytes = 0;
+
+	do
+	{
+		if (feof(file))
+			break;
+
+		readBytes = fread(buffer, sizeof(char), readSize, file);
+
+		if (readBytes == 0)
+			throw;
+
+		for (int i = 0; i < readBytes; i++)
+		{
+			if (buffer[i] == header[0])
+			{
+				//cout << "FILE/ARRAY: " << ftell(file) << " " << i << ' ' << hex << (uint16_t)buffer[i] << " == " << (uint16_t)header[0] << dec << endl;
+				if ((readSize - i) < 4)
+				{
+					fseek(file, -(readSize - i), SEEK_CUR);
+					break;
+				}
+				else if (memcmp(&buffer[i], &header, sizeof(char) * 4) == 0)
+				{
+					++instance;
+					uint32_t last = ftell(file);
+					fseek(file, -(readSize - i), SEEK_CUR);
+					
+					cout << "DATA/OFF/INST/SEEK/LAST/CURR: 0x" << hex;
+					for (uint32_t x = i; x < (i + sizeof(header)); x++)
+						cout << (uint16_t)buffer[x];
+					cout << dec << " | ";
+
+					cout << hex << (ftell(file) - (readSize - i))
+						<< dec << ' ' << instance << ' ' << (readSize - i) << ' '
+						<< hex << last << ' ' << ftell(file)
+						<< dec << endl;
+
+					done = true;
+					break;
+				}
+			}
+		}
+	} while (!done);
+
+
+	delete[] buffer;
+}
+
 //--------------------------------------------------
 // デコード
 //--------------------------------------------------
-bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume)
+bool clHCA::Decode(const char* filename, const char* filenameWAV, const bool scan, float volume)
 {
+	stringstream fileName, wavName;
 
 	// チェック
 	if (!(filename && filenameWAV))
@@ -46,53 +111,66 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume)
 	FILE *fp, *fp2;
 	if (fopen_s(&fp, filename, "rb"))
 		return false;
-	if (fopen_s(&fp2, filenameWAV, "wb"))
+	do
 	{
-		fclose(fp); return false;
-	}
+		if (scan && feof(fp))
+			break;
+		else if (scan)
+			scanFile(fp);
 
-	// ヘッダを解析
-	//unsigned char data[0x200];
-	unsigned char data[0x800];
-	fread(data, sizeof(data), 1, fp);
-	if (!Decode(fp2, data, sizeof(data), 0))
-	{
-		fclose(fp2); fclose(fp); return false;
-	}
-	//fseek(fp,(int)_dataOffset-0x200,SEEK_CUR);
-	fseek(fp, (int)_dataOffset - 0x800, SEEK_CUR);
+		wavName.str("");
+		wavName << Path::Directory(filenameWAV);
+		if (scan)
+			wavName << instance << '_';
+		wavName << Path::Filename(filenameWAV);
 
-	// 音量を設定
-	_rva_volume *= volume;
-
-	// デコード
-	unsigned char *data2 = new unsigned char[_blockSize];
-	if (!data2)
-	{
-		fclose(fp2); fclose(fp); return false;
-	}
-	for (; _blockCount; _blockCount--)
-	{
-		fread(data2, _blockSize, 1, fp);
-		if (!Decode(fp2, data2, _blockSize, _dataOffset))
+		if (fopen_s(&fp2, wavName.str().c_str(), "wb"))
 		{
-			delete[] data2;
-			fclose(fp2);
 			fclose(fp);
 			return false;
 		}
-	}
-	delete[] data2;
 
-	// 閉じる
+		// ヘッダを解析
+		unsigned char data[0x800];
+		fread(data, sizeof(data), 1, fp);
+		if (!Decode(fp2, data, sizeof(data), 0))
+		{
+			fclose(fp2); fclose(fp); return false;
+		}
+		//fseek(fp,(int)_dataOffset-0x200,SEEK_CUR);
+		fseek(fp, (int)_dataOffset - 0x800, SEEK_CUR);
+
+		// 音量を設定
+		_rva_volume *= volume;
+
+		// デコード
+		unsigned char *data2 = new unsigned char[_blockSize];
+		if (!data2)
+		{
+			fclose(fp2); fclose(fp); return false;
+		}
+		for (; _blockCount; _blockCount--)
+		{
+			fread(data2, _blockSize, 1, fp);
+			if (!Decode(fp2, data2, _blockSize, _dataOffset))
+			{
+				delete[] data2;
+				fclose(fp2);
+				fclose(fp);
+				return false;
+			}
+		}
+		delete[] data2;
+
+		// 閉じる
+		fclose(fp2);
+	} while (scan);
+
 	fclose(fp);
-	fclose(fp2);
-
 	return true;
 }
 bool clHCA::Decode(FILE *fp, void *data, int size)
 {
-
 	// ヘッダを解析
 	if (!Decode(fp, data, size, 0))
 		return false;
@@ -110,7 +188,6 @@ bool clHCA::Decode(FILE *fp, void *data, int size)
 }
 bool clHCA::Decode2(FILE *fp, FILE *fpHCA, int size)
 {
-
 	// ヘッダを解析
 	unsigned char data[0x200];
 	fread(data, sizeof(data), 1, fpHCA);
@@ -142,7 +219,6 @@ bool clHCA::Decode2(FILE *fp, FILE *fpHCA, int size)
 //--------------------------------------------------
 bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 {
-
 	// チェック
 	if (!(fp && data))
 		return false;
@@ -170,6 +246,8 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 		}
 		else
 		{
+			cout << hex << (*(unsigned int *)s & 0x7F7F7F7F) << " == " << 0x00414348 << dec << endl;
+			cout << hex << (*(unsigned int *)s) << " == " << 0x00414348 << dec << endl;
 			return false;
 		}
 

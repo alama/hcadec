@@ -16,6 +16,11 @@
 #include "Path.h"
 
 //--------------------------------------------------
+//	SCREW THE RULES
+//--------------------------------------------------
+bool scan = false;
+
+//--------------------------------------------------
 // 文字列を16進数とみなして数値に変換
 //--------------------------------------------------
 int atoi16(const char *s)
@@ -55,8 +60,8 @@ bool HCAtoWAV(char *filenameIn, char *filenameOut, unsigned int ciphKey1, unsign
 
 	// HCAファイルをデコード
 	clHCA hca(ciphKey1, ciphKey2);
-	
-	if (!hca.Decode(filenameIn, filenameOut))
+
+	if (!hca.Decode(filenameIn, filenameOut, scan))
 		return false;
 
 	return true;
@@ -67,53 +72,54 @@ bool HCAtoWAV(char *filenameIn, char *filenameOut, unsigned int ciphKey1, unsign
 //--------------------------------------------------
 int main(int argc, char* argv[])
 {
+	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
+		abort();
+	if (setvbuf(stderr, 0, _IOLBF, 4096) != 0)
+		abort();
 
 	// コマンドライン解析
 	std::string filenameIn;
 	std::string filenameOut;
 
-	bool decodeFlg = false;
-
 	unsigned int ciphKey1 = 0x30DBE1AB;
 	unsigned int ciphKey2 = 0xCC554639;
-
-	for (int i = 0; i < argc; i++)
-	{
-		if (argv[i][0] == '-' || argv[i][0] == '/')
-		{
-			switch (argv[i][1])
-			{
-			case 'o':
-				if (i + 1 < argc)
-					filenameOut = argv[++i];
-				break;
-
-			case 'd':
-				decodeFlg = true; break;
-
-			case 'a':
-				if (i + 1 < argc)
-					ciphKey1 = atoi16(argv[++i]);
-				break;
-
-			case 'b':
-				if (i + 1 < argc)
-					ciphKey2 = atoi16(argv[++i]);
-				break;
-			}
-		}
-	}
 
 	if (argc > 1)
 	{
 		for (int i = 1; i < argc; i++)
 		{
+			if (argv[i][0] == '-' || argv[i][0] == '/')
+			{
+				switch (argv[i][1])
+				{
+				case 'o':
+					if (i + 1 < argc)
+						filenameOut = argv[++i];
+					continue;
+
+				case 'a':
+					if (i + 1 < argc)
+						ciphKey1 = atoi16(argv[++i]);
+					continue;
+
+				case 'b':
+					if (i + 1 < argc)
+						ciphKey2 = atoi16(argv[++i]);
+					continue;
+
+				case 's':
+					scan = true;
+					continue;
+				}
+			}
+
 			filenameIn = argv[i];
 
 			// 入力チェック
 			if (filenameIn.empty())
 			{
 				wprintf(L"Error: 入力ファイルを指定してください。\n");
+				system("pause");
 				return -1;
 			}
 
@@ -124,10 +130,12 @@ int main(int argc, char* argv[])
 			if (!HCAtoWAV((char*)filenameIn.c_str(), (char*)filenameOut.c_str(), ciphKey1, ciphKey2))
 			{
 				wprintf(L"Error: HCAファイルのデコードに失敗しました。\n");
+				system("pause");
 				return -1;
 			}
 		}
 	}
 
+	system("pause");
 	return 0;
 }
