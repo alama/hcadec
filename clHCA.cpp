@@ -38,7 +38,7 @@ bool clHCA::CheckFile(void *data)
 	return (data && (*(unsigned int *)data & 0x7F7F7F7F) == 0x00414348);
 }
 
-const int32_t ReadSize = 128*1024;
+const int32_t ReadSize = 64 * 1024;
 const uint8_t header[4] = { 0xC8, 0xC3, 0xC1, 0x00 };
 uint32_t FileSize = 0;
 uint32_t instance = 0;
@@ -61,7 +61,6 @@ void scanFile(FILE* file)
 			readBytes = fread(buffer, sizeof(char), (FileSize - ftell(file)), file);
 		else
 			readBytes = fread(buffer, sizeof(char), ReadSize, file);
-		
 
 		if (readBytes == 0)
 		{
@@ -82,13 +81,13 @@ void scanFile(FILE* file)
 				else if (memcmp(&buffer[i], &header, sizeof(header)) == 0)
 				{
 					++instance;
-					
+
 					cout << hex << ftell(file) << dec << " -" << (readBytes - i) << ' ';
-					
+
 					fseek(file, -(readBytes - i), SEEK_CUR);
-					
+
 					cout << "Match instance " << instance << " at offset " << hex << ftell(file) << dec << endl;
-					
+
 					done = true;
 					break;
 				}
@@ -259,7 +258,7 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 		else
 		{
 			cout << "DECODE FAILURE:\n\t";
-			cout <<"DATA:\t" <<  hex << *(unsigned int *)s << dec << "\n\t";
+			cout << "DATA:\t" << hex << *(unsigned int *)s << dec << "\n\t";
 			cout << "OFFSET:\t" << ftell(fp) << endl;
 			return false;
 		}
@@ -372,7 +371,7 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 		{
 			_rva_volume = 1;
 		}
-
+#pragma region don't care
 		// comm
 		//if((*(unsigned int *)s&0x7F7F7F7F)==0x6D6D6F63)
 		//	stComment *comm=(stComment *)s;
@@ -409,6 +408,7 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 		wav.dataSize = _blockCount * 0x80 * 8 * wav.fmtSamplingSize;
 		wav.riffSize = wav.dataSize + 0x24;
 		fwrite(&wav, sizeof(wav), 1, fp);
+#pragma endregion
 	}
 
 	// データ
