@@ -1,9 +1,9 @@
 ﻿
 // HCA → WAV
-// hca.exe -d -o "出力ファイル名" "入力ファイル名"
+// hcadec -d -o "出力ファイル名" "入力ファイル名"
 
-// WAV → HCA (未実装)
-// hca.exe -o "出力ファイル名" "入力ファイル名"
+// WAV → HCA (未実装) (Not yet implemented)
+// hcadec -o "出力ファイル名" "入力ファイル名"
 
 //--------------------------------------------------
 // インクルード
@@ -20,7 +20,6 @@
 //	~~~~~~~~~~~~~SCREW THE RULES~~~~~~~~~~~~~~~~~~~
 //--------------------------------------------------
 using namespace std;
-bool scan = false;
 
 //--------------------------------------------------
 // 文字列を16進数とみなして数値に変換
@@ -63,7 +62,7 @@ bool HCAtoWAV(char *filenameIn, char *filenameOut, unsigned int ciphKey1, unsign
 	// HCAファイルをデコード
 	clHCA hca(ciphKey1, ciphKey2);
 
-	if (!hca.Decode(filenameIn, filenameOut, scan))
+	if (!hca.Decode(filenameIn, filenameOut))
 		return false;
 
 	return true;
@@ -74,6 +73,8 @@ bool HCAtoWAV(char *filenameIn, char *filenameOut, unsigned int ciphKey1, unsign
 //--------------------------------------------------
 int main(int argc, char* argv[])
 {
+	int result = 0;
+
 	// This stuff speeds up std::cout by quite a bit
 	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
 		abort();
@@ -109,10 +110,6 @@ int main(int argc, char* argv[])
 					if (i + 1 < argc)
 						ciphKey2 = atoi16(argv[++i]);
 					continue;
-
-				case 's':
-					scan = !scan;
-					continue;
 				}
 			}
 
@@ -121,10 +118,10 @@ int main(int argc, char* argv[])
 			// 入力チェック
 			if (filenameIn.empty())
 			{
-				wprintf(L"Error: 入力ファイルを指定してください。");
-				cout << endl;
+				//wprintf(L"Error: 入力ファイルを指定してください。");
+				cout << "Error: Invalid input filename." << endl;
 				system("pause");
-				return -1;
+				result = -1;
 			}
 
 			// デフォルト出力ファイル名
@@ -133,10 +130,9 @@ int main(int argc, char* argv[])
 			// デコード
 			if (!HCAtoWAV((char*)filenameIn.c_str(), (char*)filenameOut.c_str(), ciphKey1, ciphKey2))
 			{
-				wprintf(L"Error: HCAファイルのデコードに失敗しました。");
-				cout << endl;
-				system("pause");
-				return -1;
+				//wprintf(L"Error: HCAファイルのデコードに失敗しました。");
+				cout << "Error: HCA file decode has failed." << endl;
+				result = -1;
 			}
 		}
 	}
@@ -146,15 +142,16 @@ int main(int argc, char* argv[])
 		cout << '\t' << Path::Filename(argv[0]) << " [parameters] file [parameters] file2 [...]" << endl;
 		
 		cout << "\nParameters:" << endl;
-		cout << "\t-s"
-			<< "\tToggles scan mode on the next file."
-			<< "\n\t\tUsed for searching archives for SEGA HCAs."
-			<< endl << endl;
 		cout << "\t-o"
 			<< "\tSets a custom output filename for the next file."
 			<< endl;
+		
+		system("pause");
+		return result;
 	}
 
+#ifdef _DEBUG
 	system("pause");
-	return 0;
+#endif
+	return result;
 }

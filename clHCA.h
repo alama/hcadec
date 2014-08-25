@@ -17,7 +17,7 @@ public:
 	static bool CheckFile(void* data);
 
 	// デコード
-	bool Decode(const char* filename, const char* filenameWAV, const bool scan = false, float volume = 1);
+	bool Decode(const char* filename, const char* filenameWAV, float volume = 1);
 	bool Decode(FILE* fp, void* data, int size);
 	bool Decode2(FILE* fp, FILE* fpHCA, int size);
 	bool Decode(FILE* fp, void* data, int size, unsigned int address);

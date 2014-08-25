@@ -1,75 +1,82 @@
-#include <sstream>
+// Standard library
 #include <string>
+#include <sstream>
+#include <cstdint>
 
+// This class/namespace
 #include "Path.h"
 
 using namespace std;
 
-const std::string Path::Filename(const std::string& path, const bool getExt, const char split)
+namespace Path
 {
-	stringstream result; result.str("");
-	int splitpos = 0;
-	bool foundSplit = false;
-
-	for (int i = (path.length() - 1); i >= 0; i--)
+	const std::string Filename(const std::string& path, const bool getExt, const char delim)
 	{
-		if (foundSplit = (path[i] == split))
+		int start = 0;
+		int end = (path.length() - 1);
+
+		for (int i = end; i >= 0; i--)
 		{
-			splitpos = i;
-			break;
+			if (path[i] == delim)
+			{
+				start = ++i;
+				break;
+			}
 		}
-	}
 
-	for (unsigned int i = (foundSplit ? (splitpos + 1) : 0); i < path.length(); i++)
-	{
-		if (!getExt && path[i] == '.')
-			break;
-		else
-			result << path[i];
-	}
-
-	return result.str();
-}
-const std::string Path::Extension(const std::string& path, const bool getDot, const char split)
-{
-	stringstream result; result.str("");
-	int splitpos = 0;
-	string file = Filename(path, true, split);
-
-	for (int i = (file.length() - 1); i >= 0; i--)
-	{
-		if (file[i] == '.')
+		if (!getExt)
 		{
-			splitpos = i;
-			break;
+			for (int i = start; i <= end; i++)
+			{
+				if (path[i] == '.')
+				{
+					end = --i;
+					break;
+				}
+			}
 		}
+
+		return path.substr(start, (end > 0) ? (++end - start) : end);
 	}
 
-	for (unsigned int i = ((getDot) ? splitpos : (splitpos + 1)); i < file.length(); i++)
-		result << file[i];
-
-	return result.str();
-}
-const std::string Path::Directory(const std::string& path, const bool addSuffix, const char split)
-{
-	stringstream result; result.str("");
-	int splitpos = (path.length() - 1);
-	bool foundSplit = false;
-
-	for (int i = (path.length() - 1); i >= 0; i--)
+	const std::string Extension(const std::string& path, const bool getDot, const char delim)
 	{
-		if (foundSplit = (path[i] == split))
+		int start = 0;
+		int end = (path.length() - 1);
+
+		for (int i = end; i >= 0; i--)
 		{
-			splitpos = i;
-			break;
+			if (path[i] == delim)
+			{
+				start = (getDot) ? i : ++i;
+				break;
+			}
 		}
+
+		return path.substr(start, (end > 0) ? (++end - start) : end);
 	}
 
-	if (foundSplit)
+	const std::string Directory(const std::string& path, const unsigned int cutDir, const bool addSuffix, const char delim)
 	{
-		for (int i = 0; i < ((addSuffix) ? (splitpos + 1) : splitpos); i++)
-			result << path[i];
-	}
+		int start = 0;
+		int end = (path.length() - 1);
+		uint32_t cut = 0;
 
-	return result.str();
+		for (int i = end; i >= 0; i--)
+		{
+			if (path[i] == delim)
+			{
+				if (cut >= cutDir)
+				{
+					end = (addSuffix) ? i : --i;
+					break;
+				}
+				++cut;
+			}
+			else if (i == 0)
+				end = i;
+		}
+		
+		return path.substr(start, (end > 0) ? (++end - start) : end);
+	}
 }
