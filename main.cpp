@@ -68,6 +68,8 @@ bool HCAtoWAV(char *filenameIn, char *filenameOut, unsigned int ciphKey1, unsign
 	return true;
 }
 
+bool deleteSource = false;
+
 //--------------------------------------------------
 // メイン
 //--------------------------------------------------
@@ -100,6 +102,10 @@ int main(int argc, char* argv[])
 					if (i + 1 < argc)
 						filenameOut = argv[++i];
 					continue;
+
+				case 'd':
+					deleteSource = true;
+					break;
 
 				case 'a':
 					if (i + 1 < argc)
@@ -134,6 +140,10 @@ int main(int argc, char* argv[])
 				cout << "Error: HCA file decode has failed." << endl;
 				result = -1;
 			}
+			else if (deleteSource)
+			{
+				remove(filenameIn.c_str());
+			}
 		}
 	}
 	else
@@ -144,6 +154,9 @@ int main(int argc, char* argv[])
 		cout << "\nParameters:" << endl;
 		cout << "\t-o"
 			<< "\tSets a custom output filename for the next file."
+			<< endl;
+		cout << "\t-d"
+			<< "\tDelete the source file after successful conversion."
 			<< endl;
 		
 		system("pause");
