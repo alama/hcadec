@@ -11,6 +11,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <stdio.h>
 #include "clHCA.h"
@@ -20,6 +21,13 @@
 //	~~~~~~~~~~~~~SCREW THE RULES~~~~~~~~~~~~~~~~~~~
 //--------------------------------------------------
 using namespace std;
+bool isList = false;
+bool deleteSource = false;
+inline const bool StringCompare(const char* str1, const char* str2) { return (strcmp(str1, str2) == 0); }
+
+unsigned int ciphKey1 = 0x30DBE1AB;
+unsigned int ciphKey2 = 0xCC554639;
+
 
 //--------------------------------------------------
 // 文字列を16進数とみなして数値に変換
@@ -68,7 +76,59 @@ bool HCAtoWAV(char *filenameIn, char *filenameOut, unsigned int ciphKey1, unsign
 	return true;
 }
 
-bool deleteSource = false;
+void Decode(const std::string& filenameIn, const std::string& filenameOut, bool list)
+{
+	if (list)
+	{
+		ifstream listFile(filenameIn);
+
+		if (listFile.is_open())
+		{
+			for (string s; getline(listFile, s);)
+				Decode(s, filenameOut, false);
+
+			listFile.close();
+		}
+		else
+			return;
+
+	}
+	else
+	{
+		// 入力チェック
+		if (filenameIn.empty())
+		{
+			//wprintf(L"Error: 入力ファイルを指定してください。");
+			cout << "Error: Invalid input filename." << endl;
+			system("pause");
+			return;
+		}
+
+		std::string fileOut;
+
+		// デフォルト出力ファイル名
+		if (filenameOut.empty())
+			fileOut = Path::Directory(filenameIn) + Path::Filename(filenameIn, false) + ".wav";
+		else
+			fileOut = filenameOut;
+
+		cout << "Decoding: " << Path::Filename(filenameIn) << " as " << Path::Filename(fileOut) << endl;
+
+		// デコード
+		if (!HCAtoWAV((char*)filenameIn.c_str(), (char*)fileOut.c_str(), ciphKey1, ciphKey2))
+		{
+			//wprintf(L"Error: HCAファイルのデコードに失敗しました。");
+			cout << "Error: HCA file decode has failed." << endl << endl;
+			return;
+		}
+		else if (deleteSource)
+		{
+			cout << "Deleting " << filenameIn << "..." << endl;
+			remove(filenameIn.c_str());
+		}
+		cout << endl;
+	}
+}
 
 //--------------------------------------------------
 // メイン
@@ -87,62 +147,42 @@ int main(int argc, char* argv[])
 	std::string filenameIn;
 	std::string filenameOut;
 
-	unsigned int ciphKey1 = 0x30DBE1AB;
-	unsigned int ciphKey2 = 0xCC554639;
-
 	if (argc > 1)
 	{
 		for (int i = 1; i < argc; i++)
 		{
-			if (argv[i][0] == '-' || argv[i][0] == '/')
+			if (StringCompare(argv[i], "--out") || StringCompare(argv[i], "-o"))
 			{
-				switch (argv[i][1])
-				{
-				case 'o':
-					if (i + 1 < argc)
-						filenameOut = argv[++i];
-					continue;
-
-				case 'd':
-					deleteSource = true;
-					break;
-
-				case 'a':
-					if (i + 1 < argc)
-						ciphKey1 = atoi16(argv[++i]);
-					continue;
-
-				case 'b':
-					if (i + 1 < argc)
-						ciphKey2 = atoi16(argv[++i]);
-					continue;
-				}
+				filenameOut = argv[++i];
+				continue;
 			}
-
-			filenameIn = argv[i];
-
-			// 入力チェック
-			if (filenameIn.empty())
+			else if (StringCompare(argv[i], "--list") || StringCompare(argv[i], "-l"))
 			{
-				//wprintf(L"Error: 入力ファイルを指定してください。");
-				cout << "Error: Invalid input filename." << endl;
-				system("pause");
-				result = -1;
+				isList = !isList;
+				cout << "List mode " << ((isList) ? "enabled." : "disabled.") << endl;
+				continue;
 			}
-
-			// デフォルト出力ファイル名
-			filenameOut = Path::Directory(filenameIn) + Path::Filename(filenameIn, false) + ".wav";
-
-			// デコード
-			if (!HCAtoWAV((char*)filenameIn.c_str(), (char*)filenameOut.c_str(), ciphKey1, ciphKey2))
+			else if (StringCompare(argv[i], "--delete") || StringCompare(argv[i], "-d"))
 			{
-				//wprintf(L"Error: HCAファイルのデコードに失敗しました。");
-				cout << "Error: HCA file decode has failed." << endl;
-				result = -1;
+				deleteSource = !deleteSource;
+				cout << "Delete mode " << ((deleteSource) ? "enabled." : "disabled.") << endl;
+				continue;
 			}
-			else if (deleteSource)
+			else if (StringCompare(argv[i], "--ciphA"), StringCompare(argv[i], "-a"))
 			{
-				remove(filenameIn.c_str());
+				ciphKey1 = atoi16(argv[++i]);
+				continue;
+			}
+			else if (StringCompare(argv[i], "--ciphB"), StringCompare(argv[i], "-b"))
+			{
+				ciphKey2 = atoi16(argv[++i]);
+				continue;
+			}
+			else
+			{
+				filenameIn = argv[i];
+				Decode(filenameIn, filenameOut, isList);
+				filenameOut = "";
 			}
 		}
 	}
@@ -150,7 +190,7 @@ int main(int argc, char* argv[])
 	{
 		cout << "Usage:" << endl;
 		cout << '\t' << Path::Filename(argv[0]) << " [parameters] file [parameters] file2 [...]" << endl;
-		
+
 		cout << "\nParameters:" << endl;
 		cout << "\t-o"
 			<< "\tSets a custom output filename for the next file."
@@ -158,7 +198,10 @@ int main(int argc, char* argv[])
 		cout << "\t-d"
 			<< "\tDelete the source file after successful conversion."
 			<< endl;
-		
+		cout << "\t-l"
+			<< "\tTreats the next file as a list of files."
+			<< endl;
+
 		system("pause");
 		return result;
 	}
