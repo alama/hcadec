@@ -1,4 +1,4 @@
-#CXXFLAGS+=-Wall
+CXXFLAGS+=-Wall
 #CXXFLAGS+=-W
 #CXXFLAGS+=-Wno-strict-aliasing
 CXXFLAGS+=-Werror

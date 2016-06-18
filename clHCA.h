@@ -36,7 +36,7 @@ public:
 	bool Decode(FILE* fp, void* data, int size);
 	bool Decode2(FILE* fp, FILE* fpHCA, int size);
 	bool Decode(FILE * fp, void * data, int size, unsigned int address, FILE * fp_hca);
-	bool Decode(FILE* fp, void* data, int size, unsigned int address);
+	bool Decode(FILE* fp, void* data, size_t size, unsigned int address);
 
 
 private:

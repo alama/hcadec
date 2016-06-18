@@ -122,7 +122,7 @@ bool clHCA::Decode2(FILE *fp, FILE *fpHCA, int size){
 //--------------------------------------------------
 // デコード
 //--------------------------------------------------
-bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
+bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 {
 
 	// チェック
@@ -144,7 +144,7 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 			_dataOffset = bswap(hca->dataOffset);
 			//if (!(_version == 1 && _revision == 3))
 			//	return false;
-			if (size < (int)_dataOffset)
+			if (size < _dataOffset)
 				return false;
 			if (CheckSum(hca, _dataOffset) != 0)
 				return false;
@@ -300,7 +300,7 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 
 	// データ
 	else if (address >= _dataOffset){
-		if (size < (int)_blockSize)return false;
+		if (size < _blockSize)return false;
 		if (CheckSum(data, _blockSize) != 0)return false;
 		_ciph.Mask(data, _blockSize);
 		clData d(data, _blockSize);
@@ -778,7 +778,8 @@ void clHCA::stChannel::Decode5(int index){
 		float *n = &this[1].block[i];
 		for (; i < count; i++){
 			*(n++) = *p*f2;
-			*(p++) = *p*f1;
+			*p = *p*f1;
+			p++;
 		}
 	}
 }
