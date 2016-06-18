@@ -56,7 +56,7 @@ namespace Path
 		return path.substr(start, (end > 0) ? (++end - start) : end);
 	}
 
-	const std::string Directory(const std::string& path, const unsigned int cutDir, const bool addSuffix, const char delim)
+	const std::string Directory(const std::string& path, const uint32_t cutDir, const bool addSuffix, const char delim)
 	{
 		int start = 0;
 		int end = (path.length() - 1);

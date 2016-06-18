@@ -29,8 +29,8 @@ bool isList = false;
 bool deleteSource = false;
 inline bool StringCompare(const char* str1, const char* str2) { return (strcmp(str1, str2) == 0); }
 
-unsigned int ciphKey1 = 0x30DBE1AB;
-unsigned int ciphKey2 = 0xCC554639;
+uint32_t ciphKey1 = 0x30DBE1AB;
+uint32_t ciphKey2 = 0xCC554639;
 
 
 //--------------------------------------------------
@@ -68,7 +68,7 @@ int atoi16(const char *s)
 //--------------------------------------------------
 // HCA → WAV
 //--------------------------------------------------
-bool HCAtoWAV(char *filenameIn, char *filenameOut, unsigned int ciphKey1, unsigned int ciphKey2)
+bool HCAtoWAV(char *filenameIn, char *filenameOut, uint32_t ciphKey1, uint32_t ciphKey2)
 {
 
 	// HCAファイルをデコード

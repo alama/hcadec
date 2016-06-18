@@ -4,6 +4,7 @@
 // インクルード
 //--------------------------------------------------
 #include <stdio.h>
+#include <stdint.h>
 
 #ifdef __GNUC__
 #define ATTRPACK __attribute__((packed, ms_struct))
@@ -26,7 +27,7 @@
 class clHCA
 {
 public:
-	clHCA(unsigned int ciphKey1, unsigned int ciphKey2);
+	clHCA(uint32_t ciphKey1, uint32_t ciphKey2);
 
 	// チェック
 	static bool CheckFile(void* data);
@@ -35,8 +36,8 @@ public:
 	bool Decode(const char* filename, const char* filenameWAV, float volume = 1);
 	bool Decode(FILE* fp, void* data, int size);
 	bool Decode2(FILE* fp, FILE* fpHCA, int size);
-	bool Decode(FILE * fp, void * data, int size, unsigned int address, FILE * fp_hca);
-	bool Decode(FILE* fp, void* data, size_t size, unsigned int address);
+	bool Decode(FILE * fp, void * data, int size, uint32_t address, FILE * fp_hca);
+	bool Decode(FILE* fp, void* data, size_t size, uint32_t address);
 
 
 private:
@@ -45,7 +46,7 @@ PACKED(
 	// ファイル情報
 	struct stHeader
 	{
-		unsigned int signature;        // 'HCA'|0x00808080
+		uint32_t signature;        // 'HCA'|0x00808080
 		unsigned char version;         // バージョン(1)
 		unsigned char revision;        // リビジョン(3)
 		unsigned short dataOffset;     // データオフセット
@@ -57,10 +58,10 @@ PACKED(
 PACKED(
 	struct stFormat
 	{
-		unsigned int fmt;              // 'fmt'|0x00808080
-		unsigned int channelCount : 8;   // チャンネル数 1～16
-		unsigned int samplingRate : 24;  // サンプリングレート 1～0x7FFFFF
-		unsigned int blockCount;       // ブロック数
+		uint32_t fmt;              // 'fmt'|0x00808080
+		uint32_t channelCount : 8;   // チャンネル数 1～16
+		uint32_t samplingRate : 24;  // サンプリングレート 1～0x7FFFFF
+		uint32_t blockCount;       // ブロック数
 		unsigned short r14;            // 不明(0xC80)
 		unsigned short r16;            // 不明(0x226)
 	} ATTRPACK;
@@ -71,7 +72,7 @@ PACKED(
 PACKED(
 	struct stDecode
 	{
-		unsigned int dec;              // 'dec'|0x00808080
+		uint32_t dec;              // 'dec'|0x00808080
 		unsigned short blockSize;      // ブロックサイズ(CBRのときに有効？) 8～0xFFFF、0のときはVBR
 		unsigned char r1E;             // 不明(1) 0以上
 		unsigned char r1F;             // 不明(15) r1E～0x1F
@@ -86,7 +87,7 @@ PACKED(
 PACKED(
 	struct stComp
 	{
-		unsigned int comp;              // 'comp'|0x00808080
+		uint32_t comp;              // 'comp'|0x00808080
 		unsigned short blockSize;
 		unsigned char v8; //r1E (same as dec)
 		unsigned char v7; //r1F (same as dec)
@@ -105,7 +106,7 @@ PACKED(
 PACKED(
 	struct stVBR
 	{
-		unsigned int vbr;              // 'vbr'|0x00808080
+		uint32_t vbr;              // 'vbr'|0x00808080
 		unsigned short r04;            // 不明 0～0x1FF
 		unsigned short r06;            // 不明
 	} ATTRPACK;
@@ -116,7 +117,7 @@ PACKED(
 PACKED(
 	struct stATH
 	{
-		unsigned int ath;              // 'ath'|0x00808080
+		uint32_t ath;              // 'ath'|0x00808080
 		unsigned short type;           // テーブルの種類(0:全て0 1:テーブル1)
 	} ATTRPACK;
 )
@@ -126,9 +127,9 @@ PACKED(
 PACKED(
 	struct stLoop
 	{
-		unsigned int loop;             // 'loop'|0x80808080
-		unsigned int loopStart;        // ループ開始ブロックインデックス 0以上
-		unsigned int loopEnd;          // ループ終了ブロックインデックス 0以上 loopStart～stFormat::blockCount-1
+		uint32_t loop;             // 'loop'|0x80808080
+		uint32_t loopStart;        // ループ開始ブロックインデックス 0以上
+		uint32_t loopEnd;          // ループ終了ブロックインデックス 0以上 loopStart～stFormat::blockCount-1
 		unsigned short r0C;            // 不明(0x80)
 		unsigned short r0E;            // 不明(0x226)
 	} ATTRPACK;
@@ -139,7 +140,7 @@ PACKED(
 PACKED(
 	struct stCIPH
 	{
-		unsigned int ciph;             // 'ciph'|0x80808080
+		uint32_t ciph;             // 'ciph'|0x80808080
 		unsigned short type;           // テーブルの種類(0:暗号化なし 1:テーブル1 56:テーブル2)
 	} ATTRPACK;
 )
@@ -149,7 +150,7 @@ PACKED(
 PACKED(
 	struct stRVA
 	{
-		unsigned int rva;              // 'rva'|0x00808080
+		uint32_t rva;              // 'rva'|0x00808080
 		float volume;                  // ボリューム
 	}  ATTRPACK;
 )
@@ -159,7 +160,7 @@ PACKED(
 PACKED(
 	struct stComment
 	{
-		unsigned int comm;             // 'comm'|0x80808080
+		uint32_t comm;             // 'comm'|0x80808080
 		unsigned char r04;             // 不明 文字列の長さ？
 		// char 文字列[];
 	}  ATTRPACK;
@@ -170,62 +171,62 @@ PACKED(
 PACKED(
 	struct stPAD
 	{
-		unsigned int pad;              // 'pad'|0x00808080
+		uint32_t pad;              // 'pad'|0x00808080
 		// ※サイズ不明
 	} ATTRPACK;
 )
 	static_assert(sizeof(stPAD) == 4, "stPAD size is not correct");
 
-	unsigned int _version;
-	unsigned int _revision;
-	unsigned int _dataOffset;
-	unsigned int _channelCount;
-	unsigned int _samplingRate;
-	unsigned int _blockCount;
-	unsigned int _fmt_r14;
-	unsigned int _fmt_r16;
-	unsigned int _blockSize;
-	unsigned int _dec_r1E;
-	unsigned int _dec_r1F;
-	unsigned int _dec_count1;
-	unsigned int _dec_count2;
-	unsigned int _dec_r22;
-	unsigned int _dec_r23;
-	unsigned int _vbr_r04;
-	unsigned int _vbr_r06;
-	unsigned int _ath_type;
-	unsigned int _loopStart;
-	unsigned int _loopEnd;
-	unsigned int _loop_r0C;
-	unsigned int _loop_r0E;
-	unsigned int _ciph_type;
+	uint32_t _version;
+	uint32_t _revision;
+	uint32_t _dataOffset;
+	uint32_t _channelCount;
+	uint32_t _samplingRate;
+	uint32_t _blockCount;
+	uint32_t _fmt_r14;
+	uint32_t _fmt_r16;
+	uint32_t _blockSize;
+	uint32_t _dec_r1E;
+	uint32_t _dec_r1F;
+	uint32_t _dec_count1;
+	uint32_t _dec_count2;
+	uint32_t _dec_r22;
+	uint32_t _dec_r23;
+	uint32_t _vbr_r04;
+	uint32_t _vbr_r06;
+	uint32_t _ath_type;
+	uint32_t _loopStart;
+	uint32_t _loopEnd;
+	uint32_t _loop_r0C;
+	uint32_t _loop_r0E;
+	uint32_t _ciph_type;
 	float _rva_volume;
 
 	class clATH
 	{
 	public:
 		clATH();
-		bool Init(int type, unsigned int key);
+		bool Init(int type, uint32_t key);
 		unsigned char* GetTable(void);
 
 	private:
 		unsigned char _table[0x80];
 		void Init0(void);
-		void Init1(unsigned int key);
+		void Init1(uint32_t key);
 	} _ath;
 
 	class clCIPH
 	{
 	public:
 		clCIPH();
-		bool Init(int type, unsigned int key1, unsigned int key2);
+		bool Init(int type, uint32_t key1, uint32_t key2);
 		void Mask(void* data, int size);
 
 	private:
 		unsigned char _table[0x100];
 		void Init0(void);
 		void Init1(void);
-		void Init56(unsigned int key1, unsigned int key2);
+		void Init56(uint32_t key1, uint32_t key2);
 		void Init56_CreateTable(unsigned char* table, unsigned char key);
 	} _ciph;
 
@@ -269,8 +270,8 @@ PACKED(
 		void Decode8(int index);
 	} _channel[0x10];
 
-	unsigned int _ciph_key1;
-	unsigned int _ciph_key2;
+	uint32_t _ciph_key1;
+	uint32_t _ciph_key2;
 
 	static unsigned short CheckSum(void* data, int size, unsigned short sum = 0);
 };

@@ -11,22 +11,22 @@
 inline short bswap(short v){ short r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline unsigned short bswap(unsigned short v){ unsigned short r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline int bswap(int v){ int r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
-inline unsigned int bswap(unsigned int v){ unsigned int r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
+inline uint32_t bswap(uint32_t v){ uint32_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline long long bswap(long long v){ long long r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline unsigned long long bswap(unsigned long long v){ unsigned long long r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
-inline float bswap(float v){ unsigned int i = bswap(*(unsigned int *)&v); return *(float *)&i; }
+inline float bswap(float v){ uint32_t i = bswap(*(uint32_t *)&v); return *(float *)&i; }
 
 //--------------------------------------------------
 // コンストラクタ
 //--------------------------------------------------
-clHCA::clHCA(unsigned int ciphKey1, unsigned int ciphKey2) :
+clHCA::clHCA(uint32_t ciphKey1, uint32_t ciphKey2) :
 _ath(), _ciph(), _ciph_key1(ciphKey1), _ciph_key2(ciphKey2){}
 
 //--------------------------------------------------
 // HCAチェック
 //--------------------------------------------------
 bool clHCA::CheckFile(void *data){
-	return (data && (*(unsigned int *)data & 0x7F7F7F7F) == 0x00414348);
+	return (data && (*(uint32_t *)data & 0x7F7F7F7F) == 0x00414348);
 }
 
 #ifndef _WIN32
@@ -122,7 +122,7 @@ bool clHCA::Decode2(FILE *fp, FILE *fpHCA, int size){
 //--------------------------------------------------
 // デコード
 //--------------------------------------------------
-bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
+bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 {
 
 	// チェック
@@ -134,7 +134,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 		unsigned char *s = (unsigned char *)data;
 
 		// HCA
-		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00414348){
+		if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x00414348){
 			if (size < sizeof(stHeader))
 				return false;
 			stHeader *hca = (stHeader *)s; 
@@ -154,7 +154,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 		}
 
 		// fmt
-		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00746D66){
+		if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x00746D66){
 			stFormat *fmt = (stFormat *)s; s += sizeof(stFormat);
 			_channelCount = fmt->channelCount;
 			_samplingRate = bswap(fmt->samplingRate << 8);
@@ -169,7 +169,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 		}
 
 		// dec
-		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00636564)
+		if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x00636564)
 		{
 			stDecode *dec = (stDecode *)s; 
 			s += sizeof(stDecode);
@@ -184,7 +184,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 				return false;
 		}
 		//comp
-		else if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x706D6F63)
+		else if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x706D6F63)
 		{
 			stComp *dec = (stComp *)s;
 			s += sizeof(stComp);
@@ -206,7 +206,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 			return false;
 
 		// vbr
-		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00726276){
+		if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x00726276){
 			stVBR *vbr = (stVBR *)s; s += sizeof(stVBR);
 			_vbr_r04 = bswap(vbr->r04);
 			_vbr_r06 = bswap(vbr->r06);
@@ -218,7 +218,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 		}
 
 		// ath
-		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00687461){
+		if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x00687461){
 			stATH *ath = (stATH *)s; s+=sizeof(stATH);
 			_ath_type = ath->type;
 		}
@@ -227,7 +227,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 		}
 
 		// loop
-		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x706F6F6C){
+		if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x706F6F6C){
 			stLoop *loop = (stLoop *)s; s += sizeof(stLoop);
 			_loopStart = bswap(loop->loopStart);
 			_loopEnd = bswap(loop->loopEnd);
@@ -243,7 +243,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 		}
 
 		// ciph
-		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x68706963){
+		if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x68706963){
 			stCIPH *ciph = (stCIPH *)s; s+=sizeof(stCIPH);
 			_ciph_type = bswap(ciph->type);
 			if (!(_ciph_type == 0 || _ciph_type == 1 || _ciph_type == 0x38))return false;
@@ -253,7 +253,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 		}
 
 		// rva
-		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00617672){
+		if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x00617672){
 			stRVA *rva = (stRVA *)s; s += sizeof(stRVA);
 			_rva_volume = bswap(rva->volume);
 		}
@@ -262,7 +262,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 		}
 
 		// comm
-		//if((*(unsigned int *)s&0x7F7F7F7F)==0x6D6D6F63){
+		//if((*(uint32_t *)s&0x7F7F7F7F)==0x6D6D6F63){
 		//	stComment *comm=(stComment *)s;
 		//	//
 		//}
@@ -275,18 +275,18 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 		// WAVEヘッダを書き込み
 		struct stWAVEHeader{
 			char riff[4];
-			unsigned int riffSize;
+			uint32_t riffSize;
 			char wave[4];
 			char fmt[4];
-			unsigned int fmtSize;
+			uint32_t fmtSize;
 			unsigned short fmtType;
 			unsigned short fmtChannelCount;
-			unsigned int fmtSamplingRate;
-			unsigned int fmtSamplesPerSec;
+			uint32_t fmtSamplingRate;
+			uint32_t fmtSamplesPerSec;
 			unsigned short fmtSamplingSize;
 			unsigned short fmtBitCount;
 			char data[4];
-			unsigned int dataSize;
+			uint32_t dataSize;
 		}wav = { 'R', 'I', 'F', 'F', 0, 'W', 'A', 'V', 'E', 'f', 'm', 't', ' ', 0x10, 1, 0, 0, 0, 0, 16, 'd', 'a', 't', 'a', 0 };
 		wav.fmtChannelCount = _channelCount;
 		wav.fmtSamplingRate = _samplingRate;
@@ -325,7 +325,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 // ATH
 //--------------------------------------------------
 clHCA::clATH::clATH(){ Init0(); }
-bool clHCA::clATH::Init(int type, unsigned int key){
+bool clHCA::clATH::Init(int type, uint32_t key){
 	switch (type){
 	case 0:Init0(); break;
 	case 1:Init1(key); break;
@@ -339,7 +339,7 @@ unsigned char *clHCA::clATH::GetTable(void){
 void clHCA::clATH::Init0(void){
 	memset(_table, 0, sizeof(_table));
 }
-void clHCA::clATH::Init1(unsigned int key){
+void clHCA::clATH::Init1(uint32_t key){
 	static unsigned char list[] = {
 		0x78, 0x5F, 0x56, 0x51, 0x4E, 0x4C, 0x4B, 0x49, 0x48, 0x48, 0x47, 0x46, 0x46, 0x45, 0x45, 0x45,
 		0x44, 0x44, 0x44, 0x44, 0x43, 0x43, 0x43, 0x43, 0x43, 0x43, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42,
@@ -383,8 +383,8 @@ void clHCA::clATH::Init1(unsigned int key){
 		0xDE, 0xDF, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xEB, 0xED, 0xEE,
 		0xEF, 0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFF, 0xFF,
 	};
-	for (unsigned int i = 0, v = 0; i < 0x80; i++, v += key){
-		unsigned int index = v >> 13;
+	for (uint32_t i = 0, v = 0; i < 0x80; i++, v += key){
+		uint32_t index = v >> 13;
 		if (index >= 0x28E){
 			memset(&_table[i], 0xFF, 0x80 - i);
 			break;
@@ -397,7 +397,7 @@ void clHCA::clATH::Init1(unsigned int key){
 // CIPH
 //--------------------------------------------------
 clHCA::clCIPH::clCIPH(){ Init0(); }
-bool clHCA::clCIPH::Init(int type, unsigned int key1, unsigned int key2){
+bool clHCA::clCIPH::Init(int type, uint32_t key1, uint32_t key2){
 	if (!(key1 | key2))type = 0;
 	switch (type){
 	case 0:Init0(); break;
@@ -424,7 +424,7 @@ void clHCA::clCIPH::Init1(void){
 	_table[0] = 0;
 	_table[0xFF] = 0xFF;
 }
-void clHCA::clCIPH::Init56(unsigned int key1, unsigned int key2) {
+void clHCA::clCIPH::Init56(uint32_t key1, uint32_t key2) {
 
 	// テーブル1を生成
 	unsigned char t1[8];
@@ -693,7 +693,7 @@ void clHCA::stChannel::Decode2(int a, int b, unsigned char *ath){
 //   値とスケールからブロック内基準値を計算
 //--------------------------------------------------
 void clHCA::stChannel::Decode3(void){
-	static unsigned int valueInt[] = {
+	static uint32_t valueInt[] = {
 		0x342A8D26, 0x34633F89, 0x3497657D, 0x34C9B9BE, 0x35066491, 0x353311C4, 0x356E9910, 0x359EF532,
 		0x35D3CCF1, 0x360D1ADF, 0x363C034A, 0x367A83B3, 0x36A6E595, 0x36DE60F5, 0x371426FF, 0x3745672A,
 		0x37838359, 0x37AF3B79, 0x37E97C38, 0x381B8D3A, 0x384F4319, 0x388A14D5, 0x38B7FBF0, 0x38F5257D,
@@ -703,7 +703,7 @@ void clHCA::stChannel::Decode3(void){
 		0x3E1C6573, 0x3E506334, 0x3E8AD4C6, 0x3EB8FBAF, 0x3EF67A41, 0x3F243516, 0x3F5ACB94, 0x3F91C3D3,
 		0x3FC238D2, 0x400164D2, 0x402C6897, 0x4065B907, 0x40990B88, 0x40CBEC15, 0x4107DB35, 0x413504F3,
 	};
-	static unsigned int scaleInt[] = {
+	static uint32_t scaleInt[] = {
 		0x00000000, 0x3F2AAAAB, 0x3ECCCCCD, 0x3E924925, 0x3E638E39, 0x3E3A2E8C, 0x3E1D89D9, 0x3E088889,
 		0x3D842108, 0x3D020821, 0x3C810204, 0x3C008081, 0x3B804020, 0x3B002008, 0x3A801002, 0x3A000801,
 	};
@@ -767,7 +767,7 @@ void clHCA::stChannel::Decode4(clData *data){
 //--------------------------------------------------
 void clHCA::stChannel::Decode5(int index){
 	if (type == 1){
-		static unsigned int listInt[] = {
+		static uint32_t listInt[] = {
 			0x40000000, 0x3FEDB6DB, 0x3FDB6DB7, 0x3FC92492, 0x3FB6DB6E, 0x3FA49249, 0x3F924925, 0x3F800000,
 			0x3F5B6DB7, 0x3F36DB6E, 0x3F124925, 0x3EDB6DB7, 0x3E924925, 0x3E124925, 0x00000000, 0x00000000,
 		};
@@ -811,7 +811,7 @@ void clHCA::stChannel::Decode6(void){
 // デコード第七段階
 //--------------------------------------------------
 void clHCA::stChannel::Decode7(void){
-	static unsigned int list1Int[7][0x40] = {
+	static uint32_t list1Int[7][0x40] = {
 			{
 				0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75,
 				0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75,
@@ -877,7 +877,7 @@ void clHCA::stChannel::Decode7(void){
 				0x3F44E3F5, 0x3F42DE29, 0x3F40D0DA, 0x3F3EBC1B, 0x3F3CA003, 0x3F3A7CA4, 0x3F385216, 0x3F36206C,
 			}
 	};
-	static unsigned int list2Int[7][0x40] = {
+	static uint32_t list2Int[7][0x40] = {
 			{
 				0xBD0A8BD4, 0x3D0A8BD4, 0x3D0A8BD4, 0xBD0A8BD4, 0x3D0A8BD4, 0xBD0A8BD4, 0xBD0A8BD4, 0x3D0A8BD4,
 				0x3D0A8BD4, 0xBD0A8BD4, 0xBD0A8BD4, 0x3D0A8BD4, 0xBD0A8BD4, 0x3D0A8BD4, 0x3D0A8BD4, 0xBD0A8BD4,
@@ -979,7 +979,7 @@ void clHCA::stChannel::Decode7(void){
 // デコード第八段階
 //--------------------------------------------------
 void clHCA::stChannel::Decode8(int index){
-	static unsigned int listInt[2][0x40] = {
+	static uint32_t listInt[2][0x40] = {
 			{
 				0x3A3504F0, 0x3B0183B8, 0x3B70C538, 0x3BBB9268, 0x3C04A809, 0x3C308200, 0x3C61284C, 0x3C8B3F17,
 				0x3CA83992, 0x3CC77FBD, 0x3CE91110, 0x3D0677CD, 0x3D198FC4, 0x3D2DD35C, 0x3D434643, 0x3D59ECC1,
