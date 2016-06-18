@@ -57,6 +57,7 @@ public:
 
 private:
 
+PACKED(
 	// ファイル情報
 	struct stHeader
 	{
@@ -64,7 +65,7 @@ private:
 		unsigned char version;         // バージョン(1)
 		unsigned char revision;        // リビジョン(3)
 		unsigned short dataOffset;     // データオフセット
-	};
+	}  ATTRPACK;
 	STATIC_ASSERT(sizeof(stHeader), 8);
 
 	// フォーマット情報
@@ -76,7 +77,7 @@ private:
 		unsigned int blockCount;       // ブロック数
 		unsigned short r14;            // 不明(0xC80)
 		unsigned short r16;            // 不明(0x226)
-	};
+	} ATTRPACK;
 	STATIC_ASSERT(sizeof(stFormat), 16);
 
 	// デコード情報
@@ -90,7 +91,7 @@ private:
 		unsigned char count2;          // type2のcount
 		unsigned char r22;             // 不明(0)
 		unsigned char r23;             // 不明(0)
-	};
+	} ATTRPACK;
 	STATIC_ASSERT(sizeof(stDecode), 12);
 
 	struct stComp
@@ -106,7 +107,7 @@ private:
 		unsigned char v11;
 		unsigned char v12;
 		unsigned char unk00[2]; 
-	};
+	} ATTRPACK;
 	STATIC_ASSERT(sizeof(stComp), 16);
 
 	// 可変ビットレート情報
@@ -115,17 +116,15 @@ private:
 		unsigned int vbr;              // 'vbr'|0x00808080
 		unsigned short r04;            // 不明 0～0x1FF
 		unsigned short r06;            // 不明
-	};
+	} ATTRPACK;
 	STATIC_ASSERT(sizeof(stVBR), 8);
 
 	// ATHテーブル情報
-	PACKED(
 	struct stATH
 	{
 		unsigned int ath;              // 'ath'|0x00808080
 		unsigned short type;           // テーブルの種類(0:全て0 1:テーブル1)
 	} ATTRPACK;
-	)
 	STATIC_ASSERT(sizeof(stATH), 6);
 
 	// ループ情報
@@ -136,17 +135,15 @@ private:
 		unsigned int loopEnd;          // ループ終了ブロックインデックス 0以上 loopStart～stFormat::blockCount-1
 		unsigned short r0C;            // 不明(0x80)
 		unsigned short r0E;            // 不明(0x226)
-	};
+	} ATTRPACK;
 	STATIC_ASSERT(sizeof(stLoop), 16);
 
 	// CIPHテーブル情報(ブロックデータの暗号化テーブル情報)
-	PACKED(
 	struct stCIPH
 	{
 		unsigned int ciph;             // 'ciph'|0x80808080
 		unsigned short type;           // テーブルの種類(0:暗号化なし 1:テーブル1 56:テーブル2)
 	} ATTRPACK;
-	)
 	STATIC_ASSERT(sizeof(stCIPH), 6);
 
 	// 相対ボリューム調節情報
@@ -154,7 +151,7 @@ private:
 	{
 		unsigned int rva;              // 'rva'|0x00808080
 		float volume;                  // ボリューム
-	};
+	}  ATTRPACK;
 	STATIC_ASSERT(sizeof(stRVA), 8);
 
 	// コメント情報
@@ -163,7 +160,7 @@ private:
 		unsigned int comm;             // 'comm'|0x80808080
 		unsigned char r04;             // 不明 文字列の長さ？
 		// char 文字列[];
-	};
+	}  ATTRPACK;
 	STATIC_ASSERT(sizeof(stComment), 8);
 
 	// パディング？
@@ -171,8 +168,9 @@ private:
 	{
 		unsigned int pad;              // 'pad'|0x00808080
 		// ※サイズ不明
-	};
+	} ATTRPACK;
 	STATIC_ASSERT(sizeof(stPAD), 4);
+)
 
 	unsigned int _version;
 	unsigned int _revision;
