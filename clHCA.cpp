@@ -29,6 +29,14 @@ bool clHCA::CheckFile(void *data){
 	return (data && (*(unsigned int *)data & 0x7F7F7F7F) == 0x00414348);
 }
 
+#ifndef _WIN32
+bool fopen_s(FILE** pFile, const char *filename, const char *mode)
+{
+	*fp = fopen(filename, mode);
+	return *fp == NULL;
+}
+#endif
+
 //--------------------------------------------------
 // デコード
 //--------------------------------------------------
@@ -431,20 +439,20 @@ void clHCA::clCIPH::Init56(unsigned int key1, unsigned int key2) {
 	// テーブル2
 	unsigned char t2[0x10] = {
 		t1[1],
-		t1[1] ^ t1[6],
-		t1[2] ^ t1[3],
+		(unsigned char)(t1[1] ^ t1[6]),
+		(unsigned char)(t1[2] ^ t1[3]),
 		t1[2],
-		t1[2] ^ t1[1],
-		t1[3] ^ t1[4],
+		(unsigned char)(t1[2] ^ t1[1]),
+		(unsigned char)(t1[3] ^ t1[4]),
 		t1[3],
-		t1[3] ^ t1[2],
-		t1[4] ^ t1[5],
+		(unsigned char)(t1[3] ^ t1[2]),
+		(unsigned char)(t1[4] ^ t1[5]),
 		t1[4],
-		t1[4] ^ t1[3],
-		t1[5] ^ t1[6],
+		(unsigned char)(t1[4] ^ t1[3]),
+		(unsigned char)(t1[5] ^ t1[6]),
 		t1[5],
-		t1[5] ^ t1[4],
-		t1[6] ^ t1[1],
+		(unsigned char)(t1[5] ^ t1[4]),
+		(unsigned char)(t1[6] ^ t1[1]),
 		t1[6],
 	};
 
