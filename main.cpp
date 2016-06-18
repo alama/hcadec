@@ -104,7 +104,9 @@ void Decode(const std::string& filenameIn, const std::string& filenameOut, bool 
 		{
 			//wprintf(L"Error: 入力ファイルを指定してください。");
 			cout << "Error: Invalid input filename." << endl;
+#ifndef _WIN32
 			system("pause");
+#endif
 			return;
 		}
 
@@ -206,12 +208,16 @@ int main(int argc, char* argv[])
 			<< "\tTreats the next file as a list of files."
 			<< endl;
 
+#ifndef _WIN32
 		system("pause");
+#endif
 		return result;
 	}
 
 #ifdef _DEBUG
+#ifndef _WIN32
 	system("pause");
+#endif
 #endif
 	return result;
 }
