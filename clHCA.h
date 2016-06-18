@@ -34,9 +34,9 @@ public:
 
 	// デコード
 	bool Decode(const char* filename, const char* filenameWAV, float volume = 1);
-	bool Decode(FILE* fp, void* data, int size);
-	bool Decode2(FILE* fp, FILE* fpHCA, int size);
-	bool Decode(FILE * fp, void * data, int size, uint32_t address, FILE * fp_hca);
+	bool Decode(FILE* fp, void* data, size_t size);
+	bool Decode2(FILE* fp, FILE* fpHCA, size_t size);
+	bool Decode(FILE * fp, void * data, size_t size, uint32_t address, FILE * fp_hca);
 	bool Decode(FILE* fp, void* data, size_t size, uint32_t address);
 
 
@@ -47,8 +47,8 @@ PACKED(
 	struct stHeader
 	{
 		uint32_t signature;        // 'HCA'|0x00808080
-		unsigned char version;         // バージョン(1)
-		unsigned char revision;        // リビジョン(3)
+		uint8_t version;         // バージョン(1)
+		uint8_t revision;        // リビジョン(3)
 		uint16_t dataOffset;     // データオフセット
 	}  ATTRPACK;
 )
@@ -74,12 +74,12 @@ PACKED(
 	{
 		uint32_t dec;              // 'dec'|0x00808080
 		uint16_t blockSize;      // ブロックサイズ(CBRのときに有効？) 8～0xFFFF、0のときはVBR
-		unsigned char r1E;             // 不明(1) 0以上
-		unsigned char r1F;             // 不明(15) r1E～0x1F
-		unsigned char count1;          // type0とtype1のcount
-		unsigned char count2;          // type2のcount
-		unsigned char r22;             // 不明(0)
-		unsigned char r23;             // 不明(0)
+		uint8_t r1E;             // 不明(1) 0以上
+		uint8_t r1F;             // 不明(15) r1E～0x1F
+		uint8_t count1;          // type0とtype1のcount
+		uint8_t count2;          // type2のcount
+		uint8_t r22;             // 不明(0)
+		uint8_t r23;             // 不明(0)
 	} ATTRPACK;
 )
 	static_assert(sizeof(stDecode) == 12, "stDecode size is not correct");
@@ -89,15 +89,15 @@ PACKED(
 	{
 		uint32_t comp;              // 'comp'|0x00808080
 		uint16_t blockSize;
-		unsigned char v8; //r1E (same as dec)
-		unsigned char v7; //r1F (same as dec)
-		unsigned char count1;
-		unsigned char count2;
-		unsigned char v9; //unknown
-		unsigned char v10; 
-		unsigned char v11;
-		unsigned char v12;
-		unsigned char unk00[2]; 
+		uint8_t v8; //r1E (same as dec)
+		uint8_t v7; //r1F (same as dec)
+		uint8_t count1;
+		uint8_t count2;
+		uint8_t v9; //unknown
+		uint8_t v10; 
+		uint8_t v11;
+		uint8_t v12;
+		uint8_t unk00[2]; 
 	} ATTRPACK;
 )
 	static_assert(sizeof(stComp) == 16, "stComp size is not correct");
@@ -161,7 +161,7 @@ PACKED(
 	struct stComment
 	{
 		uint32_t comm;             // 'comm'|0x80808080
-		unsigned char r04;             // 不明 文字列の長さ？
+		uint8_t r04;             // 不明 文字列の長さ？
 		// char 文字列[];
 	}  ATTRPACK;
 )
@@ -207,10 +207,10 @@ PACKED(
 	public:
 		clATH();
 		bool Init(int type, uint32_t key);
-		unsigned char* GetTable(void);
+		uint8_t* GetTable(void);
 
 	private:
-		unsigned char _table[0x80];
+		uint8_t _table[0x80];
 		void Init0(void);
 		void Init1(uint32_t key);
 	} _ath;
@@ -223,11 +223,11 @@ PACKED(
 		void Mask(void* data, int size);
 
 	private:
-		unsigned char _table[0x100];
+		uint8_t _table[0x100];
 		void Init0(void);
 		void Init1(void);
 		void Init56(uint32_t key1, uint32_t key2);
-		void Init56_CreateTable(unsigned char* table, unsigned char key);
+		void Init56_CreateTable(uint8_t* table, uint8_t key);
 	} _ciph;
 
 	class clData
@@ -239,7 +239,7 @@ PACKED(
 		void AddBit(int bitSize);
 
 	private:
-		unsigned char* _data;
+		uint8_t* _data;
 		int _size;
 		int _bit;
 	};
@@ -255,13 +255,13 @@ PACKED(
 		float wav1[0x80];
 		float wav2[0x80];
 		float wav3[0x80];
-		unsigned char value[0x80];
-		unsigned char scale[0x80];
-		unsigned char value2[8];
+		uint8_t value[0x80];
+		uint8_t scale[0x80];
+		uint8_t value2[8];
 		int type;
 		int count;
 		void Decode1(clData* data);
-		void Decode2(int a, int b, unsigned char* ath);
+		void Decode2(int a, int b, uint8_t* ath);
 		void Decode3(void);
 		void Decode4(clData* data);
 		void Decode5(int index);

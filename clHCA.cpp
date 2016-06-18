@@ -51,7 +51,7 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 	if (fopen_s(&fp2, filenameWAV, "wb")){ fclose(fp); return false; }
 
 	// ヘッダを解析
-	unsigned char data[0x800];
+	uint8_t data[0x800];
 	fread(data, sizeof(data), 1, fp);
 	if (!Decode(fp2, data, sizeof(data), 0)){ fclose(fp2); fclose(fp); return false; }
 	fseek(fp, (int)_dataOffset - 0x800, SEEK_CUR);
@@ -60,7 +60,7 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 	_rva_volume *= volume;
 
 	// デコード
-	unsigned char *data2 = new unsigned char[_blockSize];
+	uint8_t *data2 = new uint8_t[_blockSize];
 	if (!data2){ fclose(fp2); fclose(fp); return false; }
 	for (; _blockCount; _blockCount--){
 		fread(data2, _blockSize, 1, fp);
@@ -79,7 +79,7 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 
 	return true;
 }
-bool clHCA::Decode(FILE *fp, void *data, int size){
+bool clHCA::Decode(FILE *fp, void *data, size_t size){
 
 	// ヘッダを解析
 	if (!Decode(fp, data, size, 0))return false;
@@ -95,17 +95,17 @@ bool clHCA::Decode(FILE *fp, void *data, int size){
 
 	return true;
 }
-bool clHCA::Decode2(FILE *fp, FILE *fpHCA, int size){
+bool clHCA::Decode2(FILE *fp, FILE *fpHCA, size_t size){
 
 	// ヘッダを解析
-	unsigned char data[0x200];
+	uint8_t data[0x200];
 	fread(data, sizeof(data), 1, fpHCA);
 	if (!Decode(fp, data, sizeof(data), 0))return false;
 	fseek(fpHCA, (int)_dataOffset - 0x200, SEEK_CUR);
 	size -= (int)_dataOffset;
 
 	// デコード
-	unsigned char *data2 = new unsigned char[_blockSize];
+	uint8_t *data2 = new uint8_t[_blockSize];
 	if (!data2)return false;
 	for (; _blockCount&&size > 0; _blockCount--, size -= (int)_blockSize){
 		fread(data2, _blockSize, 1, fpHCA);
@@ -131,7 +131,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 	// ヘッダ
 	if (address == 0)
 	{
-		unsigned char *s = (unsigned char *)data;
+		uint8_t *s = (uint8_t *)data;
 
 		// HCA
 		if ((*(uint32_t *)s & 0x7F7F7F7F) == 0x00414348){
@@ -333,14 +333,14 @@ bool clHCA::clATH::Init(int type, uint32_t key){
 	}
 	return true;
 }
-unsigned char *clHCA::clATH::GetTable(void){
+uint8_t *clHCA::clATH::GetTable(void){
 	return _table;
 }
 void clHCA::clATH::Init0(void){
 	memset(_table, 0, sizeof(_table));
 }
 void clHCA::clATH::Init1(uint32_t key){
-	static unsigned char list[] = {
+	static uint8_t list[] = {
 		0x78, 0x5F, 0x56, 0x51, 0x4E, 0x4C, 0x4B, 0x49, 0x48, 0x48, 0x47, 0x46, 0x46, 0x45, 0x45, 0x45,
 		0x44, 0x44, 0x44, 0x44, 0x43, 0x43, 0x43, 0x43, 0x43, 0x43, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42,
 		0x42, 0x42, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x40, 0x40, 0x40, 0x40,
@@ -408,7 +408,7 @@ bool clHCA::clCIPH::Init(int type, uint32_t key1, uint32_t key2){
 	return true;
 }
 void clHCA::clCIPH::Mask(void *data, int size){
-	for (unsigned char *d = (unsigned char *)data; size > 0; d++, size--){
+	for (uint8_t *d = (uint8_t *)data; size > 0; d++, size--){
 		*d = _table[*d];
 	}
 }
@@ -427,7 +427,7 @@ void clHCA::clCIPH::Init1(void){
 void clHCA::clCIPH::Init56(uint32_t key1, uint32_t key2) {
 
 	// テーブル1を生成
-	unsigned char t1[8];
+	uint8_t t1[8];
 	if (!key1)key2--;
 	key1--;
 	for (int i = 0; i < 7; i++) {
@@ -437,31 +437,31 @@ void clHCA::clCIPH::Init56(uint32_t key1, uint32_t key2) {
 	}
 
 	// テーブル2
-	unsigned char t2[0x10] = {
+	uint8_t t2[0x10] = {
 		t1[1],
-		(unsigned char)(t1[1] ^ t1[6]),
-		(unsigned char)(t1[2] ^ t1[3]),
+		(uint8_t)(t1[1] ^ t1[6]),
+		(uint8_t)(t1[2] ^ t1[3]),
 		t1[2],
-		(unsigned char)(t1[2] ^ t1[1]),
-		(unsigned char)(t1[3] ^ t1[4]),
+		(uint8_t)(t1[2] ^ t1[1]),
+		(uint8_t)(t1[3] ^ t1[4]),
 		t1[3],
-		(unsigned char)(t1[3] ^ t1[2]),
-		(unsigned char)(t1[4] ^ t1[5]),
+		(uint8_t)(t1[3] ^ t1[2]),
+		(uint8_t)(t1[4] ^ t1[5]),
 		t1[4],
-		(unsigned char)(t1[4] ^ t1[3]),
-		(unsigned char)(t1[5] ^ t1[6]),
+		(uint8_t)(t1[4] ^ t1[3]),
+		(uint8_t)(t1[5] ^ t1[6]),
 		t1[5],
-		(unsigned char)(t1[5] ^ t1[4]),
-		(unsigned char)(t1[6] ^ t1[1]),
+		(uint8_t)(t1[5] ^ t1[4]),
+		(uint8_t)(t1[6] ^ t1[1]),
 		t1[6],
 	};
 
 	// テーブル3
-	unsigned char t3[0x100], t31[0x10], t32[0x10], *t = t3;
+	uint8_t t3[0x100], t31[0x10], t32[0x10], *t = t3;
 	Init56_CreateTable(t31, t1[0]);
 	for (int i = 0; i < 0x10; i++) {
 		Init56_CreateTable(t32, t2[i]);
-		unsigned char v = t31[i] << 4;
+		uint8_t v = t31[i] << 4;
 		for (int j = 0; j < 0x10; j++) {
 			*(t++) = v | t32[j];
 		}
@@ -471,14 +471,14 @@ void clHCA::clCIPH::Init56(uint32_t key1, uint32_t key2) {
 	t = &_table[1];
 	for (int i = 0, v = 0; i < 0x100; i++) {
 		v = (v + 0x11) & 0xFF;
-		unsigned char a = t3[v];
+		uint8_t a = t3[v];
 		if (a != 0 && a != 0xFF)*(t++) = a;
 	}
 	_table[0] = 0;
 	_table[0xFF] = 0xFF;
 
 }
-void clHCA::clCIPH::Init56_CreateTable(unsigned char *r, unsigned char key){
+void clHCA::clCIPH::Init56_CreateTable(uint8_t *r, uint8_t key){
 	int mul = ((key & 1) << 3) | 5;
 	int add = (key & 0xE) | 1;
 	key >>= 4;
@@ -491,7 +491,7 @@ void clHCA::clCIPH::Init56_CreateTable(unsigned char *r, unsigned char key){
 //--------------------------------------------------
 // データ
 //--------------------------------------------------
-clHCA::clData::clData(void *data, int size) :_data((unsigned char *)data), _size(size * 8 - 16), _bit(0){}
+clHCA::clData::clData(void *data, int size) :_data((uint8_t *)data), _size(size * 8 - 16), _bit(0){}
 int clHCA::clData::CheckBit(int bitSize){
 	int v = 0;
 	if (_bit + bitSize < _size){
@@ -499,7 +499,7 @@ int clHCA::clData::CheckBit(int bitSize){
 			0xFFFFFF, 0x7FFFFF, 0x3FFFFF, 0x1FFFFF,
 			0x0FFFFF, 0x07FFFF, 0x03FFFF, 0x01FFFF,
 		};
-		unsigned char *data = &_data[_bit >> 3];
+		uint8_t *data = &_data[_bit >> 3];
 		v = data[0]; v = (v << 8) | data[1]; v = (v << 8) | data[2];
 		v &= mask[_bit & 7];
 		v >>= 24 - (_bit & 7) - bitSize;
@@ -663,8 +663,8 @@ void clHCA::stChannel::Decode1(clData *data){
 // デコード第二段階
 //   値からスケールを計算
 //--------------------------------------------------
-void clHCA::stChannel::Decode2(int a, int b, unsigned char *ath){
-	static unsigned char index[] = {
+void clHCA::stChannel::Decode2(int a, int b, uint8_t *ath){
+	static uint8_t index[] = {
 		0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0D, 0x0D,
 		0x0D, 0x0D, 0x0D, 0x0D, 0x0C, 0x0C, 0x0C, 0x0C,
 		0x0C, 0x0C, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,
@@ -1042,7 +1042,7 @@ uint16_t clHCA::CheckSum(void *data, int size, uint16_t sum){
 		0x8243, 0x0246, 0x024C, 0x8249, 0x0258, 0x825D, 0x8257, 0x0252, 0x0270, 0x8275, 0x827F, 0x027A, 0x826B, 0x026E, 0x0264, 0x8261,
 		0x0220, 0x8225, 0x822F, 0x022A, 0x823B, 0x023E, 0x0234, 0x8231, 0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202,
 	};
-	for (unsigned char *s = (unsigned char *)data, *e = s + size; s < e; s++){
+	for (uint8_t *s = (uint8_t *)data, *e = s + size; s < e; s++){
 		sum = (sum << 8) ^ value[(sum >> 8) ^ *s];
 	}
 	return sum;
