@@ -32,8 +32,8 @@ bool clHCA::CheckFile(void *data){
 #ifndef _WIN32
 bool fopen_s(FILE** pFile, const char *filename, const char *mode)
 {
-	*fp = fopen(filename, mode);
-	return *fp == NULL;
+	*pFile = fopen(filename, mode);
+	return *pFile == NULL;
 }
 #endif
 
