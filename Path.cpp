@@ -15,7 +15,7 @@ namespace Path
 		size_t start = 0;
 		size_t end = (path.length() - 1);
 
-		for (size_t i = end; i >= 0; i--)
+		for (size_t i = end; i != SIZE_MAX; i--)
 		{
 			if (path[i] == delim)
 			{
@@ -44,7 +44,7 @@ namespace Path
 		size_t start = 0;
 		size_t end = (path.length() - 1);
 
-		for (size_t i = end; i >= 0; i--)
+		for (size_t i = end; i != SIZE_MAX; i--)
 		{
 			if (path[i] == delim)
 			{
@@ -62,7 +62,7 @@ namespace Path
 		size_t end = (path.length() - 1);
 		uint32_t cut = 0;
 
-		for (size_t i = end; i >= 0; i--)
+		for (size_t i = end; i != SIZE_MAX; i--)
 		{
 			if (path[i] == delim)
 			{
