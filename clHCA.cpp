@@ -9,7 +9,7 @@
 // インライン関数
 //--------------------------------------------------
 inline short bswap(short v){ short r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
-inline unsigned short bswap(unsigned short v){ unsigned short r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
+inline uint16_t bswap(uint16_t v){ uint16_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline int bswap(int v){ int r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline uint32_t bswap(uint32_t v){ uint32_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline long long bswap(long long v){ long long r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
@@ -279,12 +279,12 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 			char wave[4];
 			char fmt[4];
 			uint32_t fmtSize;
-			unsigned short fmtType;
-			unsigned short fmtChannelCount;
+			uint16_t fmtType;
+			uint16_t fmtChannelCount;
 			uint32_t fmtSamplingRate;
 			uint32_t fmtSamplesPerSec;
-			unsigned short fmtSamplingSize;
-			unsigned short fmtBitCount;
+			uint16_t fmtSamplingSize;
+			uint16_t fmtBitCount;
 			char data[4];
 			uint32_t dataSize;
 		}wav = { 'R', 'I', 'F', 'F', 0, 'W', 'A', 'V', 'E', 'f', 'm', 't', ' ', 0x10, 1, 0, 0, 0, 0, 16, 'd', 'a', 't', 'a', 0 };
@@ -1023,8 +1023,8 @@ void clHCA::stChannel::Decode8(int index){
 //--------------------------------------------------
 // チェックサム
 //--------------------------------------------------
-unsigned short clHCA::CheckSum(void *data, int size, unsigned short sum){
-	static unsigned short value[] = {
+uint16_t clHCA::CheckSum(void *data, int size, uint16_t sum){
+	static uint16_t value[] = {
 		0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011, 0x8033, 0x0036, 0x003C, 0x8039, 0x0028, 0x802D, 0x8027, 0x0022,
 		0x8063, 0x0066, 0x006C, 0x8069, 0x0078, 0x807D, 0x8077, 0x0072, 0x0050, 0x8055, 0x805F, 0x005A, 0x804B, 0x004E, 0x0044, 0x8041,
 		0x80C3, 0x00C6, 0x00CC, 0x80C9, 0x00D8, 0x80DD, 0x80D7, 0x00D2, 0x00F0, 0x80F5, 0x80FF, 0x00FA, 0x80EB, 0x00EE, 0x00E4, 0x80E1,

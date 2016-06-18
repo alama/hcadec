@@ -49,7 +49,7 @@ PACKED(
 		uint32_t signature;        // 'HCA'|0x00808080
 		unsigned char version;         // バージョン(1)
 		unsigned char revision;        // リビジョン(3)
-		unsigned short dataOffset;     // データオフセット
+		uint16_t dataOffset;     // データオフセット
 	}  ATTRPACK;
 )
 	static_assert(sizeof(stHeader) == 8, "stHeader size is not correct");
@@ -62,8 +62,8 @@ PACKED(
 		uint32_t channelCount : 8;   // チャンネル数 1～16
 		uint32_t samplingRate : 24;  // サンプリングレート 1～0x7FFFFF
 		uint32_t blockCount;       // ブロック数
-		unsigned short r14;            // 不明(0xC80)
-		unsigned short r16;            // 不明(0x226)
+		uint16_t r14;            // 不明(0xC80)
+		uint16_t r16;            // 不明(0x226)
 	} ATTRPACK;
 )
 	static_assert(sizeof(stFormat) == 16, "stFormat size is not correct");
@@ -73,7 +73,7 @@ PACKED(
 	struct stDecode
 	{
 		uint32_t dec;              // 'dec'|0x00808080
-		unsigned short blockSize;      // ブロックサイズ(CBRのときに有効？) 8～0xFFFF、0のときはVBR
+		uint16_t blockSize;      // ブロックサイズ(CBRのときに有効？) 8～0xFFFF、0のときはVBR
 		unsigned char r1E;             // 不明(1) 0以上
 		unsigned char r1F;             // 不明(15) r1E～0x1F
 		unsigned char count1;          // type0とtype1のcount
@@ -88,7 +88,7 @@ PACKED(
 	struct stComp
 	{
 		uint32_t comp;              // 'comp'|0x00808080
-		unsigned short blockSize;
+		uint16_t blockSize;
 		unsigned char v8; //r1E (same as dec)
 		unsigned char v7; //r1F (same as dec)
 		unsigned char count1;
@@ -107,8 +107,8 @@ PACKED(
 	struct stVBR
 	{
 		uint32_t vbr;              // 'vbr'|0x00808080
-		unsigned short r04;            // 不明 0～0x1FF
-		unsigned short r06;            // 不明
+		uint16_t r04;            // 不明 0～0x1FF
+		uint16_t r06;            // 不明
 	} ATTRPACK;
 )
 	static_assert(sizeof(stVBR) == 8, "stVBR size is not correct");
@@ -118,7 +118,7 @@ PACKED(
 	struct stATH
 	{
 		uint32_t ath;              // 'ath'|0x00808080
-		unsigned short type;           // テーブルの種類(0:全て0 1:テーブル1)
+		uint16_t type;           // テーブルの種類(0:全て0 1:テーブル1)
 	} ATTRPACK;
 )
 	static_assert(sizeof(stATH) == 6, "stATH size is not correct");
@@ -130,8 +130,8 @@ PACKED(
 		uint32_t loop;             // 'loop'|0x80808080
 		uint32_t loopStart;        // ループ開始ブロックインデックス 0以上
 		uint32_t loopEnd;          // ループ終了ブロックインデックス 0以上 loopStart～stFormat::blockCount-1
-		unsigned short r0C;            // 不明(0x80)
-		unsigned short r0E;            // 不明(0x226)
+		uint16_t r0C;            // 不明(0x80)
+		uint16_t r0E;            // 不明(0x226)
 	} ATTRPACK;
 )
 	static_assert(sizeof(stLoop) == 16, "stLoop size is not correct");
@@ -141,7 +141,7 @@ PACKED(
 	struct stCIPH
 	{
 		uint32_t ciph;             // 'ciph'|0x80808080
-		unsigned short type;           // テーブルの種類(0:暗号化なし 1:テーブル1 56:テーブル2)
+		uint16_t type;           // テーブルの種類(0:暗号化なし 1:テーブル1 56:テーブル2)
 	} ATTRPACK;
 )
 	static_assert(sizeof(stCIPH) == 6, "stCIPH size is not correct");
@@ -273,5 +273,5 @@ PACKED(
 	uint32_t _ciph_key1;
 	uint32_t _ciph_key2;
 
-	static unsigned short CheckSum(void* data, int size, unsigned short sum = 0);
+	static uint16_t CheckSum(void* data, int size, uint16_t sum = 0);
 };
