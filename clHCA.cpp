@@ -305,6 +305,8 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 		_ciph.Mask(data, _blockSize);
 		clData d(data, _blockSize);
 		Decode(&d);
+		int16_t tmp[_channelCount*0x80*8];
+		int16_t *p = tmp;
 		for (int32_t i = 0; i < 8; i++){
 			for (int32_t j = 0; j < 0x80; j++){
 				for (int32_t k = 0; k < (int32_t)_channelCount; k++){
@@ -312,10 +314,11 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 					if (f>1)f = 1;
 					else if (f < -1)f = -1;
 					int32_t v = (int32_t)(f * 0x7FFF);
-					fwrite(&v, 2, 1, fp);
+					*p++ = v;
 				}
 			}
 		}
+		fwrite(&tmp, sizeof(int16_t), _channelCount*0x80*8, fp);
 	}
 
 	return true;
