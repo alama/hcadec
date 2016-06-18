@@ -211,7 +211,7 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 
 		// ath
 		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00687461){
-			stATH *ath = (stATH *)s; s += 6;//s+=sizeof(stATH);
+			stATH *ath = (stATH *)s; s+=sizeof(stATH);
 			_ath_type = ath->type;
 		}
 		else{
@@ -236,7 +236,7 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
 
 		// ciph
 		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x68706963){
-			stCIPH *ciph = (stCIPH *)s; s += 6;//s+=sizeof(stCIPH);
+			stCIPH *ciph = (stCIPH *)s; s+=sizeof(stCIPH);
 			_ciph_type = bswap(ciph->type);
 			if (!(_ciph_type == 0 || _ciph_type == 1 || _ciph_type == 0x38))return false;
 		}

@@ -5,6 +5,37 @@
 //--------------------------------------------------
 #include <stdio.h>
 
+
+#define ASSERT_CONCAT_(a, b) a##b
+#define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
+/* These can't be used after statements in c89. */
+#ifdef __COUNTER__
+#define STATIC_ASSERT(e,m) \
+    ;enum { ASSERT_CONCAT(static_assert_, __COUNTER__) = 1/(int)(!!(e)) }
+#else
+/* This can't be used twice on the same line so ensure if using in headers
+* that the headers are not included twice (by wrapping in #ifndef...#endif)
+* Note it doesn't cause an issue when used on same line of separate modules
+* compiled with gcc -combine -fwhole-program.  */
+#define STATIC_ASSERT(e,m) \
+    ;enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1/(int)(!!(e)) }
+#endif
+
+#ifdef __MINGW32__
+#define ATTRPACK __attribute__((packed, ms_struct))
+#else
+#define ATTRPACK
+#endif
+
+#ifdef _MSC_VER
+#define PACKED( __Declaration__ )\
+	__pragma( pack(push, 1) ) \
+	__Declaration__ \
+	__pragma( pack(pop) )
+#else
+#define PACKED(x) x
+#endif
+
 //--------------------------------------------------
 // HCA(High Compression Audio)クラス
 //--------------------------------------------------
@@ -34,6 +65,7 @@ private:
 		unsigned char revision;        // リビジョン(3)
 		unsigned short dataOffset;     // データオフセット
 	};
+	STATIC_ASSERT(sizeof(stHeader), 8);
 
 	// フォーマット情報
 	struct stFormat
@@ -45,6 +77,7 @@ private:
 		unsigned short r14;            // 不明(0xC80)
 		unsigned short r16;            // 不明(0x226)
 	};
+	STATIC_ASSERT(sizeof(stFormat), 16);
 
 	// デコード情報
 	struct stDecode
@@ -58,6 +91,7 @@ private:
 		unsigned char r22;             // 不明(0)
 		unsigned char r23;             // 不明(0)
 	};
+	STATIC_ASSERT(sizeof(stDecode), 12);
 
 	struct stComp
 	{
@@ -73,6 +107,7 @@ private:
 		unsigned char v12;
 		unsigned char unk00[2]; 
 	};
+	STATIC_ASSERT(sizeof(stComp), 16);
 
 	// 可変ビットレート情報
 	struct stVBR
@@ -81,13 +116,17 @@ private:
 		unsigned short r04;            // 不明 0～0x1FF
 		unsigned short r06;            // 不明
 	};
+	STATIC_ASSERT(sizeof(stVBR), 8);
 
 	// ATHテーブル情報
+	PACKED(
 	struct stATH
 	{
 		unsigned int ath;              // 'ath'|0x00808080
 		unsigned short type;           // テーブルの種類(0:全て0 1:テーブル1)
-	};
+	} ATTRPACK;
+	)
+	STATIC_ASSERT(sizeof(stATH), 6);
 
 	// ループ情報
 	struct stLoop
@@ -98,13 +137,17 @@ private:
 		unsigned short r0C;            // 不明(0x80)
 		unsigned short r0E;            // 不明(0x226)
 	};
+	STATIC_ASSERT(sizeof(stLoop), 16);
 
 	// CIPHテーブル情報(ブロックデータの暗号化テーブル情報)
+	PACKED(
 	struct stCIPH
 	{
 		unsigned int ciph;             // 'ciph'|0x80808080
 		unsigned short type;           // テーブルの種類(0:暗号化なし 1:テーブル1 56:テーブル2)
-	};
+	} ATTRPACK;
+	)
+	STATIC_ASSERT(sizeof(stCIPH), 6);
 
 	// 相対ボリューム調節情報
 	struct stRVA
@@ -112,6 +155,7 @@ private:
 		unsigned int rva;              // 'rva'|0x00808080
 		float volume;                  // ボリューム
 	};
+	STATIC_ASSERT(sizeof(stRVA), 8);
 
 	// コメント情報
 	struct stComment
@@ -120,6 +164,7 @@ private:
 		unsigned char r04;             // 不明 文字列の長さ？
 		// char 文字列[];
 	};
+	STATIC_ASSERT(sizeof(stComment), 8);
 
 	// パディング？
 	struct stPAD
@@ -127,6 +172,7 @@ private:
 		unsigned int pad;              // 'pad'|0x00808080
 		// ※サイズ不明
 	};
+	STATIC_ASSERT(sizeof(stPAD), 4);
 
 	unsigned int _version;
 	unsigned int _revision;
