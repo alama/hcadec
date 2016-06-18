@@ -68,11 +68,11 @@ int atoi16(const char *s)
 //--------------------------------------------------
 // HCA → WAV
 //--------------------------------------------------
-bool HCAtoWAV(char *filenameIn, char *filenameOut, uint32_t ciphKey1, uint32_t ciphKey2)
+bool HCAtoWAV(char *filenameIn, char *filenameOut, uint32_t pciphKey1, uint32_t pciphKey2)
 {
 
 	// HCAファイルをデコード
-	clHCA hca(ciphKey1, ciphKey2);
+	clHCA hca(pciphKey1, pciphKey2);
 
 	if (!hca.Decode(filenameIn, filenameOut))
 		return false;

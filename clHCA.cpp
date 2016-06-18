@@ -288,7 +288,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 			char data[4];
 			uint32_t dataSize;
 		}wav = { 'R', 'I', 'F', 'F', 0, 'W', 'A', 'V', 'E', 'f', 'm', 't', ' ', 0x10, 1, 0, 0, 0, 0, 16, 'd', 'a', 't', 'a', 0 };
-		wav.fmtChannelCount = _channelCount;
+		wav.fmtChannelCount = (uint16_t)_channelCount;
 		wav.fmtSamplingRate = _samplingRate;
 		wav.fmtSamplingSize = 2 * wav.fmtChannelCount;
 		wav.fmtSamplesPerSec = wav.fmtSamplingRate*wav.fmtSamplingSize;
@@ -413,13 +413,13 @@ void clHCA::clCIPH::Mask(void *data, int size){
 	}
 }
 void clHCA::clCIPH::Init0(void){
-	for (int i = 0; i < 0x100; i++)_table[i] = i;
+	for (uint16_t i = 0; i < 0x100; i++)_table[i] = (uint8_t)i;
 }
 void clHCA::clCIPH::Init1(void){
-	for (int i = 0, v = 0; i < 0xFF; i++){
+	for (uint16_t i = 0, v = 0; i < 0xFF; i++){
 		v = (v * 13 + 11) & 0xFF;
 		if (v == 0 || v == 0xFF)v = (v * 13 + 11) & 0xFF;
-		_table[i] = v;
+		_table[i] = (uint8_t)v;
 	}
 	_table[0] = 0;
 	_table[0xFF] = 0xFF;
@@ -430,8 +430,8 @@ void clHCA::clCIPH::Init56(uint32_t key1, uint32_t key2) {
 	uint8_t t1[8];
 	if (!key1)key2--;
 	key1--;
-	for (int i = 0; i < 7; i++) {
-		t1[i] = key1;
+	for (uint8_t i = 0; i < 7; i++) {
+		t1[i] = (uint8_t)key1;
 		key1 = (key1 >> 8) | (key2 << 24);
 		key2 >>= 8;
 	}
@@ -627,14 +627,14 @@ void clHCA::stChannel::Decode1(clData *data){
 	int v = data->GetBit(3);
 	if (v >= 6){
 		for (int i = 0; i < count; i++){
-			value[i] = data->GetBit(6);
+			value[i] = (uint8_t)data->GetBit(6);
 		}
 	}
 	else if (v){
 		int v1 = (1 << v) - 1;
 		int v2 = v1 >> 1;
 		int x = data->GetBit(6);
-		value[0] = x;
+		value[0] = (uint8_t)x;
 		for (int i = 1; i < count; i++){
 			int y = data->GetBit(v);
 			if (y != v1){
@@ -643,7 +643,7 @@ void clHCA::stChannel::Decode1(clData *data){
 			else{
 				x = data->GetBit(6);
 			}
-			value[i] = x;
+			value[i] = (uint8_t)x;
 		}
 	}
 	else{
@@ -653,7 +653,7 @@ void clHCA::stChannel::Decode1(clData *data){
 		v = data->CheckBit(4);
 		if (v < 15){
 			for (int i = 0; i < 8; i++){
-				value2[i] = data->GetBit(4);
+				value2[i] = (uint8_t)data->GetBit(4);
 			}
 		}
 	}
@@ -683,7 +683,7 @@ void clHCA::stChannel::Decode2(int a, int b, uint8_t *ath){
 			else if (v >= 0x39)v = 1;
 			else v = index[v];
 		}
-		scale[i] = v;
+		scale[i] = (uint8_t)v;
 	}
 	memset(&scale[count], 0, 0x80 - count);
 }
@@ -958,9 +958,9 @@ void clHCA::stChannel::Decode7(void){
 				float a = *(s1++);
 				float b = *(s2++);
 				float c = *(list1Float++);
-				float d = *(list2Float++);
-				*(d1++) = a*c - b*d;
-				*(d2--) = a*d + b*c;
+				float fd = *(list2Float++);
+				*(d1++) = a*c - b*fd;
+				*(d2--) = a*fd + b*c;
 			}
 			s1 += count2;
 			s2 += count2;
