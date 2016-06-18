@@ -8,7 +8,7 @@
 //--------------------------------------------------
 // インライン関数
 //--------------------------------------------------
-inline short bswap(short v){ short r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
+inline int16_t bswap(int16_t v){ int16_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline uint16_t bswap(uint16_t v){ uint16_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline int32_t bswap(int32_t v){ int32_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline uint32_t bswap(uint32_t v){ uint32_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
