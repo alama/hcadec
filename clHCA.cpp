@@ -43,11 +43,9 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 	if (fopen_s(&fp2, filenameWAV, "wb")){ fclose(fp); return false; }
 
 	// ヘッダを解析
-	//unsigned char data[0x200];
 	unsigned char data[0x800];
 	fread(data, sizeof(data), 1, fp);
 	if (!Decode(fp2, data, sizeof(data), 0)){ fclose(fp2); fclose(fp); return false; }
-	//fseek(fp,(int)_dataOffset-0x200,SEEK_CUR);
 	fseek(fp, (int)_dataOffset - 0x800, SEEK_CUR);
 
 	// 音量を設定
@@ -116,25 +114,32 @@ bool clHCA::Decode2(FILE *fp, FILE *fpHCA, int size){
 //--------------------------------------------------
 // デコード
 //--------------------------------------------------
-bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address){
+bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address)
+{
 
 	// チェック
 	if (!(fp&&data))return false;
 
 	// ヘッダ
-	if (address == 0){
+	if (address == 0)
+	{
 		unsigned char *s = (unsigned char *)data;
 
 		// HCA
 		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00414348){
-			if (size < sizeof(stHeader))return false;
-			stHeader *hca = (stHeader *)s; s += sizeof(stHeader);
+			if (size < sizeof(stHeader))
+				return false;
+			stHeader *hca = (stHeader *)s; 
+			s += sizeof(stHeader);
 			_version = hca->version;
 			_revision = hca->revision;
 			_dataOffset = bswap(hca->dataOffset);
-			if (!(_version == 1 && _revision == 3))return false;
-			if (size < (int)_dataOffset)return false;
-			if (CheckSum(hca, _dataOffset) != 0)return false;
+			//if (!(_version == 1 && _revision == 3))
+			//	return false;
+			if (size < (int)_dataOffset)
+				return false;
+			if (CheckSum(hca, _dataOffset) != 0)
+				return false;
 		}
 		else{
 			return false;
@@ -156,8 +161,10 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address){
 		}
 
 		// dec
-		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00636564){
-			stDecode *dec = (stDecode *)s; s += sizeof(stDecode);
+		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00636564)
+		{
+			stDecode *dec = (stDecode *)s; 
+			s += sizeof(stDecode);
 			_blockSize = bswap(dec->blockSize);
 			_dec_r1E = dec->r1E;
 			_dec_r1F = dec->r1F;
@@ -165,12 +172,30 @@ bool clHCA::Decode(FILE *fp, void *data, int size, unsigned int address){
 			_dec_count2 = dec->count2;
 			_dec_r22 = dec->r22;
 			_dec_r23 = dec->r23;
-			if (!((_blockSize >= 8 && _blockSize <= 0xFFFF) || (_blockSize == 0)))return false;
-			if (!(_dec_r1E >= 0 && _dec_r1F >= _dec_r1E&&_dec_r1F <= 0x1F))return false;
+			if (!(_dec_r1E >= 0 && _dec_r1F >= _dec_r1E&&_dec_r1F <= 0x1F))
+				return false;
 		}
-		else{
+		//comp
+		else if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x706D6F63)
+		{
+			stComp *dec = (stComp *)s;
+			s += sizeof(stComp);
+			_blockSize = bswap(dec->blockSize); 
+			_dec_r1E = dec->v8;
+			_dec_r1F = dec->v7;
+			//_dec_count1 = dec->v13;
+			_dec_count1 = 0x40;
+			_dec_count2 = dec->count2;
+			_dec_r22 = dec->v9;
+			_dec_r23 = dec->v10;
+		}
+		else
+		{
 			return false;
 		}
+
+		if (!((_blockSize >= 8 && _blockSize <= 0xFFFF) || (_blockSize == 0)))
+			return false;
 
 		// vbr
 		if ((*(unsigned int *)s & 0x7F7F7F7F) == 0x00726276){
@@ -391,13 +416,13 @@ void clHCA::clCIPH::Init1(void){
 	_table[0] = 0;
 	_table[0xFF] = 0xFF;
 }
-void clHCA::clCIPH::Init56(unsigned int key1, unsigned int key2){
+void clHCA::clCIPH::Init56(unsigned int key1, unsigned int key2) {
 
 	// テーブル1を生成
 	unsigned char t1[8];
 	if (!key1)key2--;
 	key1--;
-	for (int i = 0; i < 7; i++){
+	for (int i = 0; i < 7; i++) {
 		t1[i] = key1;
 		key1 = (key1 >> 8) | (key2 << 24);
 		key2 >>= 8;
@@ -426,17 +451,17 @@ void clHCA::clCIPH::Init56(unsigned int key1, unsigned int key2){
 	// テーブル3
 	unsigned char t3[0x100], t31[0x10], t32[0x10], *t = t3;
 	Init56_CreateTable(t31, t1[0]);
-	for (int i = 0; i < 0x10; i++){
+	for (int i = 0; i < 0x10; i++) {
 		Init56_CreateTable(t32, t2[i]);
 		unsigned char v = t31[i] << 4;
-		for (int j = 0; j < 0x10; j++){
+		for (int j = 0; j < 0x10; j++) {
 			*(t++) = v | t32[j];
 		}
 	}
 
 	// CIPHテーブル
 	t = &_table[1];
-	for (int i = 0, v = 0; i < 0x100; i++){
+	for (int i = 0, v = 0; i < 0x100; i++) {
 		v = (v + 0x11) & 0xFF;
 		unsigned char a = t3[v];
 		if (a != 0 && a != 0xFF)*(t++) = a;
@@ -488,7 +513,8 @@ void clHCA::clData::AddBit(int bitSize){
 bool clHCA::InitDecode(int channelCount, int a, int b, int count1, int count2, int e, int f){
 
 	// チェック
-	if (!(a == 1 && b == 15))return false;
+	if (!(a == 1 && b == 15))
+		return false;
 
 	// 初期化
 	_channelCount = channelCount;

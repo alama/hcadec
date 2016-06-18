@@ -20,6 +20,7 @@ public:
 	bool Decode(const char* filename, const char* filenameWAV, float volume = 1);
 	bool Decode(FILE* fp, void* data, int size);
 	bool Decode2(FILE* fp, FILE* fpHCA, int size);
+	bool Decode(FILE * fp, void * data, int size, unsigned int address, FILE * fp_hca);
 	bool Decode(FILE* fp, void* data, int size, unsigned int address);
 
 
@@ -56,6 +57,21 @@ private:
 		unsigned char count2;          // type2のcount
 		unsigned char r22;             // 不明(0)
 		unsigned char r23;             // 不明(0)
+	};
+
+	struct stComp
+	{
+		unsigned int comp;              // 'comp'|0x00808080
+		unsigned short blockSize;
+		unsigned char v8; //r1E (same as dec)
+		unsigned char v7; //r1F (same as dec)
+		unsigned char count1;
+		unsigned char count2;
+		unsigned char v9; //unknown
+		unsigned char v10; 
+		unsigned char v11;
+		unsigned char v12;
+		unsigned char unk00[2]; 
 	};
 
 	// 可変ビットレート情報
