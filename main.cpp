@@ -27,7 +27,7 @@
 using namespace std;
 bool isList = false;
 bool deleteSource = false;
-inline const bool StringCompare(const char* str1, const char* str2) { return (strcmp(str1, str2) == 0); }
+inline bool StringCompare(const char* str1, const char* str2) { return (strcmp(str1, str2) == 0); }
 
 unsigned int ciphKey1 = 0x30DBE1AB;
 unsigned int ciphKey2 = 0xCC554639;

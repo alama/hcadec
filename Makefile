@@ -1,5 +1,5 @@
 CXXFLAGS+=-Wall
-#CXXFLAGS+=-W
+CXXFLAGS+=-W
 #CXXFLAGS+=-Wno-strict-aliasing
 CXXFLAGS+=-Werror
 CXXFLAGS:=-O0 -g -march=native -msse2 -mfpmath=sse $(CXXFLAGS)
