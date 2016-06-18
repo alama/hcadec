@@ -36,9 +36,9 @@ uint32_t ciphKey2 = 0xCC554639;
 //--------------------------------------------------
 // 文字列を16進数とみなして数値に変換
 //--------------------------------------------------
-int atoi16(const char *s)
+int32_t atoi16(const char *s)
 {
-	int r = 0;
+	int32_t r = 0;
 	while (*s)
 	{
 		if (*s >= '0' && *s <= '9')
@@ -139,9 +139,9 @@ void Decode(const std::string& filenameIn, const std::string& filenameOut, bool 
 //--------------------------------------------------
 // メイン
 //--------------------------------------------------
-int main(int argc, char* argv[])
+int32_t main(int32_t argc, char* argv[])
 {
-	int result = 0;
+	int32_t result = 0;
 
 	// This stuff speeds up std::cout by quite a bit
 	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
 
 	if (argc > 1)
 	{
-		for (int i = 1; i < argc; i++)
+		for (int32_t i = 1; i < argc; i++)
 		{
 			if (StringCompare(argv[i], "--out") || StringCompare(argv[i], "-o"))
 			{

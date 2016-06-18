@@ -206,7 +206,7 @@ PACKED(
 	{
 	public:
 		clATH();
-		bool Init(int type, uint32_t key);
+		bool Init(int32_t type, uint32_t key);
 		uint8_t* GetTable(void);
 
 	private:
@@ -219,8 +219,8 @@ PACKED(
 	{
 	public:
 		clCIPH();
-		bool Init(int type, uint32_t key1, uint32_t key2);
-		void Mask(void* data, int size);
+		bool Init(int32_t type, uint32_t key1, uint32_t key2);
+		void Mask(void* data, int32_t size);
 
 	private:
 		uint8_t _table[0x100];
@@ -233,18 +233,18 @@ PACKED(
 	class clData
 	{
 	public:
-		clData(void* data, int size);
-		int CheckBit(int bitSize);
-		int GetBit(int bitSize);
-		void AddBit(int bitSize);
+		clData(void* data, int32_t size);
+		int32_t CheckBit(int32_t bitSize);
+		int32_t GetBit(int32_t bitSize);
+		void AddBit(int32_t bitSize);
 
 	private:
 		uint8_t* _data;
-		int _size;
-		int _bit;
+		int32_t _size;
+		int32_t _bit;
 	};
 
-	bool InitDecode(int channelCount, int a, int b, int count1, int count2, int e, int f);
+	bool InitDecode(int32_t channelCount, int32_t a, int32_t b, int32_t count1, int32_t count2, int32_t e, int32_t f);
 	void Decode(clData* data);
 
 	struct stChannel
@@ -258,20 +258,20 @@ PACKED(
 		uint8_t value[0x80];
 		uint8_t scale[0x80];
 		uint8_t value2[8];
-		int type;
-		int count;
+		int32_t type;
+		int32_t count;
 		void Decode1(clData* data);
-		void Decode2(int a, int b, uint8_t* ath);
+		void Decode2(int32_t a, int32_t b, uint8_t* ath);
 		void Decode3(void);
 		void Decode4(clData* data);
-		void Decode5(int index);
+		void Decode5(int32_t index);
 		void Decode6(void);
 		void Decode7(void);
-		void Decode8(int index);
+		void Decode8(int32_t index);
 	} _channel[0x10];
 
 	uint32_t _ciph_key1;
 	uint32_t _ciph_key2;
 
-	static uint16_t CheckSum(void* data, int size, uint16_t sum = 0);
+	static uint16_t CheckSum(void* data, int32_t size, uint16_t sum = 0);
 };

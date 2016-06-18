@@ -58,7 +58,7 @@ namespace Path
 
 	const std::string Directory(const std::string& path, const uint32_t cutDir, const bool addSuffix, const char delim)
 	{
-		int start = 0;
+		int32_t start = 0;
 		size_t end = (path.length() - 1);
 		uint32_t cut = 0;
 

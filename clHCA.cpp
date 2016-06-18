@@ -10,7 +10,7 @@
 //--------------------------------------------------
 inline short bswap(short v){ short r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline uint16_t bswap(uint16_t v){ uint16_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
-inline int bswap(int v){ int r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
+inline int32_t bswap(int32_t v){ int32_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline uint32_t bswap(uint32_t v){ uint32_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline long long bswap(long long v){ long long r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline unsigned long long bswap(unsigned long long v){ unsigned long long r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
@@ -54,7 +54,7 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 	uint8_t data[0x800];
 	fread(data, sizeof(data), 1, fp);
 	if (!Decode(fp2, data, sizeof(data), 0)){ fclose(fp2); fclose(fp); return false; }
-	fseek(fp, (int)_dataOffset - 0x800, SEEK_CUR);
+	fseek(fp, (int32_t)_dataOffset - 0x800, SEEK_CUR);
 
 	// 音量を設定
 	_rva_volume *= volume;
@@ -84,10 +84,10 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size){
 	// ヘッダを解析
 	if (!Decode(fp, data, size, 0))return false;
 	data = (char *)data + _dataOffset;
-	size -= (int)_dataOffset;
+	size -= (int32_t)_dataOffset;
 
 	// デコード
-	for (; _blockCount&&size > 0; _blockCount--, data = (char *)data + _blockSize, size -= (int)_blockSize){
+	for (; _blockCount&&size > 0; _blockCount--, data = (char *)data + _blockSize, size -= (int32_t)_blockSize){
 		if (!Decode(fp, data, size, _dataOffset)){
 			return false;
 		}
@@ -101,13 +101,13 @@ bool clHCA::Decode2(FILE *fp, FILE *fpHCA, size_t size){
 	uint8_t data[0x200];
 	fread(data, sizeof(data), 1, fpHCA);
 	if (!Decode(fp, data, sizeof(data), 0))return false;
-	fseek(fpHCA, (int)_dataOffset - 0x200, SEEK_CUR);
-	size -= (int)_dataOffset;
+	fseek(fpHCA, (int32_t)_dataOffset - 0x200, SEEK_CUR);
+	size -= (int32_t)_dataOffset;
 
 	// デコード
 	uint8_t *data2 = new uint8_t[_blockSize];
 	if (!data2)return false;
-	for (; _blockCount&&size > 0; _blockCount--, size -= (int)_blockSize){
+	for (; _blockCount&&size > 0; _blockCount--, size -= (int32_t)_blockSize){
 		fread(data2, _blockSize, 1, fpHCA);
 		if (!Decode(fp, data2, _blockSize, _dataOffset)){
 			delete[] data2;
@@ -305,13 +305,13 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 		_ciph.Mask(data, _blockSize);
 		clData d(data, _blockSize);
 		Decode(&d);
-		for (int i = 0; i < 8; i++){
-			for (int j = 0; j < 0x80; j++){
-				for (int k = 0; k < (int)_channelCount; k++){
+		for (int32_t i = 0; i < 8; i++){
+			for (int32_t j = 0; j < 0x80; j++){
+				for (int32_t k = 0; k < (int32_t)_channelCount; k++){
 					float f = _channel[k].wave[i][j] * _rva_volume;
 					if (f>1)f = 1;
 					else if (f < -1)f = -1;
-					int v = (int)(f * 0x7FFF);
+					int32_t v = (int32_t)(f * 0x7FFF);
 					fwrite(&v, 2, 1, fp);
 				}
 			}
@@ -325,7 +325,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 // ATH
 //--------------------------------------------------
 clHCA::clATH::clATH(){ Init0(); }
-bool clHCA::clATH::Init(int type, uint32_t key){
+bool clHCA::clATH::Init(int32_t type, uint32_t key){
 	switch (type){
 	case 0:Init0(); break;
 	case 1:Init1(key); break;
@@ -397,7 +397,7 @@ void clHCA::clATH::Init1(uint32_t key){
 // CIPH
 //--------------------------------------------------
 clHCA::clCIPH::clCIPH(){ Init0(); }
-bool clHCA::clCIPH::Init(int type, uint32_t key1, uint32_t key2){
+bool clHCA::clCIPH::Init(int32_t type, uint32_t key1, uint32_t key2){
 	if (!(key1 | key2))type = 0;
 	switch (type){
 	case 0:Init0(); break;
@@ -407,7 +407,7 @@ bool clHCA::clCIPH::Init(int type, uint32_t key1, uint32_t key2){
 	}
 	return true;
 }
-void clHCA::clCIPH::Mask(void *data, int size){
+void clHCA::clCIPH::Mask(void *data, int32_t size){
 	for (uint8_t *d = (uint8_t *)data; size > 0; d++, size--){
 		*d = _table[*d];
 	}
@@ -459,17 +459,17 @@ void clHCA::clCIPH::Init56(uint32_t key1, uint32_t key2) {
 	// テーブル3
 	uint8_t t3[0x100], t31[0x10], t32[0x10], *t = t3;
 	Init56_CreateTable(t31, t1[0]);
-	for (int i = 0; i < 0x10; i++) {
+	for (int32_t i = 0; i < 0x10; i++) {
 		Init56_CreateTable(t32, t2[i]);
 		uint8_t v = t31[i] << 4;
-		for (int j = 0; j < 0x10; j++) {
+		for (int32_t j = 0; j < 0x10; j++) {
 			*(t++) = v | t32[j];
 		}
 	}
 
 	// CIPHテーブル
 	t = &_table[1];
-	for (int i = 0, v = 0; i < 0x100; i++) {
+	for (int32_t i = 0, v = 0; i < 0x100; i++) {
 		v = (v + 0x11) & 0xFF;
 		uint8_t a = t3[v];
 		if (a != 0 && a != 0xFF)*(t++) = a;
@@ -479,10 +479,10 @@ void clHCA::clCIPH::Init56(uint32_t key1, uint32_t key2) {
 
 }
 void clHCA::clCIPH::Init56_CreateTable(uint8_t *r, uint8_t key){
-	int mul = ((key & 1) << 3) | 5;
-	int add = (key & 0xE) | 1;
+	int32_t mul = ((key & 1) << 3) | 5;
+	int32_t add = (key & 0xE) | 1;
 	key >>= 4;
-	for (int i = 0; i < 0x10; i++){
+	for (int32_t i = 0; i < 0x10; i++){
 		key = (key*mul + add) & 0xF;
 		*(r++) = key;
 	}
@@ -491,11 +491,11 @@ void clHCA::clCIPH::Init56_CreateTable(uint8_t *r, uint8_t key){
 //--------------------------------------------------
 // データ
 //--------------------------------------------------
-clHCA::clData::clData(void *data, int size) :_data((uint8_t *)data), _size(size * 8 - 16), _bit(0){}
-int clHCA::clData::CheckBit(int bitSize){
-	int v = 0;
+clHCA::clData::clData(void *data, int32_t size) :_data((uint8_t *)data), _size(size * 8 - 16), _bit(0){}
+int32_t clHCA::clData::CheckBit(int32_t bitSize){
+	int32_t v = 0;
 	if (_bit + bitSize < _size){
-		static int mask[] = {
+		static int32_t mask[] = {
 			0xFFFFFF, 0x7FFFFF, 0x3FFFFF, 0x1FFFFF,
 			0x0FFFFF, 0x07FFFF, 0x03FFFF, 0x01FFFF,
 		};
@@ -506,19 +506,19 @@ int clHCA::clData::CheckBit(int bitSize){
 	}
 	return v;
 }
-int clHCA::clData::GetBit(int bitSize){
-	int v = CheckBit(bitSize);
+int32_t clHCA::clData::GetBit(int32_t bitSize){
+	int32_t v = CheckBit(bitSize);
 	_bit += bitSize;
 	return v;
 }
-void clHCA::clData::AddBit(int bitSize){
+void clHCA::clData::AddBit(int32_t bitSize){
 	_bit += bitSize;
 }
 
 //--------------------------------------------------
 // デコード
 //--------------------------------------------------
-bool clHCA::InitDecode(int channelCount, int a, int b, int count1, int count2, int e, int f){
+bool clHCA::InitDecode(int32_t channelCount, int32_t a, int32_t b, int32_t count1, int32_t count2, int32_t e, int32_t f){
 
 	// チェック
 	if (!(a == 1 && b == 15))
@@ -535,19 +535,19 @@ bool clHCA::InitDecode(int channelCount, int a, int b, int count1, int count2, i
 		if (!e)e = channelCount;
 		switch (e){
 		case 2:
-			for (int i = 0; i < channelCount; i += e){
+			for (int32_t i = 0; i < channelCount; i += e){
 				_channel[i + 0].type = 1;
 				_channel[i + 1].type = 2;
 			}
 			break;
 		case 3:
-			for (int i = 0; i < channelCount; i += e){
+			for (int32_t i = 0; i < channelCount; i += e){
 				_channel[i + 0].type = 1;
 				_channel[i + 1].type = 2;
 			}
 			break;
 		case 4:
-			for (int i = 0; i < channelCount; i += e){
+			for (int32_t i = 0; i < channelCount; i += e){
 				_channel[i + 0].type = 1;
 				_channel[i + 1].type = 2;
 				if (!f){
@@ -557,7 +557,7 @@ bool clHCA::InitDecode(int channelCount, int a, int b, int count1, int count2, i
 			}
 			break;
 		case 5:
-			for (int i = 0; i < channelCount; i += e){
+			for (int32_t i = 0; i < channelCount; i += e){
 				_channel[i + 0].type = 1;
 				_channel[i + 1].type = 2;
 				if (f <= 2){
@@ -568,7 +568,7 @@ bool clHCA::InitDecode(int channelCount, int a, int b, int count1, int count2, i
 			break;
 		case 6:
 		case 7:
-			for (int i = 0; i < channelCount; i += e){
+			for (int32_t i = 0; i < channelCount; i += e){
 				_channel[i + 0].type = 1;
 				_channel[i + 1].type = 2;
 				_channel[i + 4].type = 1;
@@ -576,7 +576,7 @@ bool clHCA::InitDecode(int channelCount, int a, int b, int count1, int count2, i
 			}
 			break;
 		case 8:
-			for (int i = 0; i < channelCount; i += e){
+			for (int32_t i = 0; i < channelCount; i += e){
 				_channel[i + 0].type = 1;
 				_channel[i + 1].type = 2;
 				_channel[i + 4].type = 1;
@@ -589,27 +589,27 @@ bool clHCA::InitDecode(int channelCount, int a, int b, int count1, int count2, i
 	}
 
 	// 回数を設定
-	for (int i = 0; i < channelCount; i++){
+	for (int32_t i = 0; i < channelCount; i++){
 		_channel[i].count = 1 + ((_channel[i].type != 2) ? count1 : count2);
 	}
 
 	return true;
 }
 void clHCA::Decode(clData *data){
-	int magic = data->GetBit(16);//0xFFFF固定
+	int32_t magic = data->GetBit(16);//0xFFFF固定
 	if (magic == 0xFFFF){
-		int a = data->GetBit(9);//不明
-		int b = data->GetBit(7);//不明
-		for (int i = 0; i < (int)_channelCount; i++){
+		int32_t a = data->GetBit(9);//不明
+		int32_t b = data->GetBit(7);//不明
+		for (int32_t i = 0; i < (int32_t)_channelCount; i++){
 			_channel[i].Decode1(data);
 			_channel[i].Decode2(a, b, _ath.GetTable());
 			_channel[i].Decode3();
 		}
-		for (int i = 0; i < 8; i++){
-			for (int j = 0; j < (int)_channelCount; j++){
+		for (int32_t i = 0; i < 8; i++){
+			for (int32_t j = 0; j < (int32_t)_channelCount; j++){
 				_channel[j].Decode4(data);
 			}
-			for (int j = 0; j < (int)_channelCount; j++){
+			for (int32_t j = 0; j < (int32_t)_channelCount; j++){
 				_channel[j].Decode5(i);
 				_channel[j].Decode6();
 				_channel[j].Decode7();
@@ -624,19 +624,19 @@ void clHCA::Decode(clData *data){
 //   データから値を取得
 //--------------------------------------------------
 void clHCA::stChannel::Decode1(clData *data){
-	int v = data->GetBit(3);
+	int32_t v = data->GetBit(3);
 	if (v >= 6){
-		for (int i = 0; i < count; i++){
+		for (int32_t i = 0; i < count; i++){
 			value[i] = (uint8_t)data->GetBit(6);
 		}
 	}
 	else if (v){
-		int v1 = (1 << v) - 1;
-		int v2 = v1 >> 1;
-		int x = data->GetBit(6);
+		int32_t v1 = (1 << v) - 1;
+		int32_t v2 = v1 >> 1;
+		int32_t x = data->GetBit(6);
 		value[0] = (uint8_t)x;
-		for (int i = 1; i < count; i++){
-			int y = data->GetBit(v);
+		for (int32_t i = 1; i < count; i++){
+			int32_t y = data->GetBit(v);
 			if (y != v1){
 				x += y - v2;
 			}
@@ -652,7 +652,7 @@ void clHCA::stChannel::Decode1(clData *data){
 	if (type == 2){
 		v = data->CheckBit(4);
 		if (v < 15){
-			for (int i = 0; i < 8; i++){
+			for (int32_t i = 0; i < 8; i++){
 				value2[i] = (uint8_t)data->GetBit(4);
 			}
 		}
@@ -663,7 +663,7 @@ void clHCA::stChannel::Decode1(clData *data){
 // デコード第二段階
 //   値からスケールを計算
 //--------------------------------------------------
-void clHCA::stChannel::Decode2(int a, int b, uint8_t *ath){
+void clHCA::stChannel::Decode2(int32_t a, int32_t b, uint8_t *ath){
 	static uint8_t index[] = {
 		0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0E, 0x0D, 0x0D,
 		0x0D, 0x0D, 0x0D, 0x0D, 0x0C, 0x0C, 0x0C, 0x0C,
@@ -674,9 +674,9 @@ void clHCA::stChannel::Decode2(int a, int b, uint8_t *ath){
 		0x04, 0x04, 0x03, 0x03, 0x03, 0x02, 0x02, 0x02,
 		0x02, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
 	};
-	int c = (a << 8) - b;
-	for (int i = 0; i < count; i++){
-		int v = value[i];
+	int32_t c = (a << 8) - b;
+	for (int32_t i = 0; i < count; i++){
+		int32_t v = value[i];
 		if (v){
 			v = ath[i] + ((c + i) >> 8) - ((v * 5) >> 1) + 1;
 			if (v < 0)v = 15;
@@ -709,7 +709,7 @@ void clHCA::stChannel::Decode3(void){
 	};
 	static float *valueFloat = (float *)valueInt;
 	static float *scaleFloat = (float *)scaleInt;
-	for (int i = 0; i < count; i++){
+	for (int32_t i = 0; i < count; i++){
 		base[i] = valueFloat[value[i]] * scaleFloat[scale[i]];
 	}
 }
@@ -742,11 +742,11 @@ void clHCA::stChannel::Decode4(clData *data){
 		+0, +0, +1, +1, -1, -1, +2, -2, +3, -3, +4, -4, +5, -5, +6, -6,
 		+0, +0, +1, -1, +2, -2, +3, -3, +4, -4, +5, -5, +6, -6, +7, -7,
 	};
-	for (int i = 0; i < count; i++){
+	for (int32_t i = 0; i < count; i++){
 		float f;
-		int s = scale[i];
-		int bitSize = list1[s];
-		int v = data->GetBit(bitSize);
+		int32_t s = scale[i];
+		int32_t bitSize = list1[s];
+		int32_t v = data->GetBit(bitSize);
 		if (s >= 8){
 			v = (1 - ((v & 1) << 1))*(v >> 1);
 			if (!v)data->AddBit(-1);
@@ -765,13 +765,13 @@ void clHCA::stChannel::Decode4(clData *data){
 //--------------------------------------------------
 // デコード第五段階
 //--------------------------------------------------
-void clHCA::stChannel::Decode5(int index){
+void clHCA::stChannel::Decode5(int32_t index){
 	if (type == 1){
 		static uint32_t listInt[] = {
 			0x40000000, 0x3FEDB6DB, 0x3FDB6DB7, 0x3FC92492, 0x3FB6DB6E, 0x3FA49249, 0x3F924925, 0x3F800000,
 			0x3F5B6DB7, 0x3F36DB6E, 0x3F124925, 0x3EDB6DB7, 0x3E924925, 0x3E124925, 0x00000000, 0x00000000,
 		};
-		int i = this[1].count;
+		int32_t i = this[1].count;
 		float f1 = ((float *)listInt)[this[1].value2[index]];
 		float f2 = f1 - 2.0f;
 		float *p = &block[i];
@@ -790,11 +790,11 @@ void clHCA::stChannel::Decode5(int index){
 void clHCA::stChannel::Decode6(void){
 	float *s = block;
 	float *d = wav1;
-	for (int i = 0, count1 = 1, count2 = 0x40; i < 7; i++, count1 <<= 1, count2 >>= 1){
+	for (int32_t i = 0, count1 = 1, count2 = 0x40; i < 7; i++, count1 <<= 1, count2 >>= 1){
 		float *d1 = d;
 		float *d2 = &d[count2];
-		for (int j = 0; j < count1; j++){
-			for (int k = 0; k < count2; k++){
+		for (int32_t j = 0; j < count1; j++){
+			for (int32_t k = 0; k < count2; k++){
 				float a = *(s++);
 				float b = *(s++);
 				*(d1++) = b + a;
@@ -946,15 +946,15 @@ void clHCA::stChannel::Decode7(void){
 	float wav[0x80];
 	float *s = wav1;
 	float *d = wav;
-	for (int i = 0, count1 = 0x40, count2 = 1; i < 7; i++, count1 >>= 1, count2 <<= 1){
+	for (int32_t i = 0, count1 = 0x40, count2 = 1; i < 7; i++, count1 >>= 1, count2 <<= 1){
 		float *list1Float = (float *)list1Int[i];
 		float *list2Float = (float *)list2Int[i];
 		float *s1 = s;
 		float *s2 = &s1[count2];
 		float *d1 = d;
 		float *d2 = &d1[count2 * 2 - 1];
-		for (int j = 0; j < count1; j++){
-			for (int k = 0; k < count2; k++){
+		for (int32_t j = 0; j < count1; j++){
+			for (int32_t k = 0; k < count2; k++){
 				float a = *(s1++);
 				float b = *(s2++);
 				float c = *(list1Float++);
@@ -970,7 +970,7 @@ void clHCA::stChannel::Decode7(void){
 		float *w = s; s = d; d = w;
 	}
 	d = wav2;
-	for (int i = 0; i < 0x80; i++){
+	for (int32_t i = 0; i < 0x80; i++){
 		*(d++) = *(s++);
 	}
 }
@@ -978,7 +978,7 @@ void clHCA::stChannel::Decode7(void){
 //--------------------------------------------------
 // デコード第八段階
 //--------------------------------------------------
-void clHCA::stChannel::Decode8(int index){
+void clHCA::stChannel::Decode8(int32_t index){
 	static uint32_t listInt[2][0x40] = {
 			{
 				0x3A3504F0, 0x3B0183B8, 0x3B70C538, 0x3BBB9268, 0x3C04A809, 0x3C308200, 0x3C61284C, 0x3C8B3F17,
@@ -1004,18 +1004,18 @@ void clHCA::stChannel::Decode8(int index){
 	float *s2 = wav3;
 	float *d = wave[index];
 	float *listFloat = (float *)listInt;
-	for (int i = 0; i < 0x40; i++){
+	for (int32_t i = 0; i < 0x40; i++){
 		*(d++) = *(s1++)**(listFloat++) + *(s2++);
 	}
-	for (int i = 0; i < 0x40; i++){
+	for (int32_t i = 0; i < 0x40; i++){
 		*(d++) = *(listFloat++)**(--s1) - *(s2++);
 	}
 	s1 = &wav2[0x40 - 1];
 	d = wav3;
-	for (int i = 0; i < 0x40; i++){
+	for (int32_t i = 0; i < 0x40; i++){
 		*(d++) = *(s1--)**(--listFloat);
 	}
-	for (int i = 0; i < 0x40; i++){
+	for (int32_t i = 0; i < 0x40; i++){
 		*(d++) = *(--listFloat)**(++s1);
 	}
 }
@@ -1023,7 +1023,7 @@ void clHCA::stChannel::Decode8(int index){
 //--------------------------------------------------
 // チェックサム
 //--------------------------------------------------
-uint16_t clHCA::CheckSum(void *data, int size, uint16_t sum){
+uint16_t clHCA::CheckSum(void *data, int32_t size, uint16_t sum){
 	static uint16_t value[] = {
 		0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011, 0x8033, 0x0036, 0x003C, 0x8039, 0x0028, 0x802D, 0x8027, 0x0022,
 		0x8063, 0x0066, 0x006C, 0x8069, 0x0078, 0x807D, 0x8077, 0x0072, 0x0050, 0x8055, 0x805F, 0x005A, 0x804B, 0x004E, 0x0044, 0x8041,
