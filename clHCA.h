@@ -7,6 +7,8 @@
 
 #ifdef __GNUC__
 #define ATTRPACK __attribute__((packed, ms_struct))
+#else
+#define ATTRPACK
 #endif
 
 #ifdef _MSC_VER
