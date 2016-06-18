@@ -180,7 +180,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 			_dec_count2 = dec->count2;
 			_dec_r22 = dec->r22;
 			_dec_r23 = dec->r23;
-			if (!(_dec_r1E >= 0 && _dec_r1F >= _dec_r1E&&_dec_r1F <= 0x1F))
+			if (!(/*_dec_r1E >= 0 &&*/ _dec_r1F >= _dec_r1E&&_dec_r1F <= 0x1F))
 				return false;
 		}
 		//comp
@@ -210,7 +210,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 			stVBR *vbr = (stVBR *)s; s += sizeof(stVBR);
 			_vbr_r04 = bswap(vbr->r04);
 			_vbr_r06 = bswap(vbr->r06);
-			if (!(_blockSize == 0 && _vbr_r04 >= 0 && _vbr_r04 <= 0x1FF))return false;
+			if (!(_blockSize == 0 && /*_vbr_r04 >= 0 &&*/ _vbr_r04 <= 0x1FF))return false;
 		}
 		else{
 			_vbr_r04 = 0;
@@ -233,7 +233,7 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, unsigned int address)
 			_loopEnd = bswap(loop->loopEnd);
 			_loop_r0C = bswap(loop->r0C);
 			_loop_r0E = bswap(loop->r0E);
-			if (!(_loopStart >= 0 && _loopStart <= _loopEnd&&_loopEnd < _blockCount))return false;
+			if (!(/*_loopStart >= 0 &&*/ _loopStart <= _loopEnd&&_loopEnd < _blockCount))return false;
 		}
 		else{
 			_loopStart = 0;
