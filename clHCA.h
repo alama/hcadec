@@ -5,26 +5,8 @@
 //--------------------------------------------------
 #include <stdio.h>
 
-
-#define ASSERT_CONCAT_(a, b) a##b
-#define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
-/* These can't be used after statements in c89. */
-#ifdef __COUNTER__
-#define STATIC_ASSERT(e,m) \
-    ;enum { ASSERT_CONCAT(static_assert_, __COUNTER__) = 1/(int)(!!(e)) }
-#else
-/* This can't be used twice on the same line so ensure if using in headers
-* that the headers are not included twice (by wrapping in #ifndef...#endif)
-* Note it doesn't cause an issue when used on same line of separate modules
-* compiled with gcc -combine -fwhole-program.  */
-#define STATIC_ASSERT(e,m) \
-    ;enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1/(int)(!!(e)) }
-#endif
-
-#ifdef __MINGW32__
+#ifdef __GNUC__
 #define ATTRPACK __attribute__((packed, ms_struct))
-#else
-#define ATTRPACK
 #endif
 
 #ifdef _MSC_VER
@@ -67,7 +49,7 @@ PACKED(
 		unsigned short dataOffset;     // データオフセット
 	}  ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stHeader), 8);
+	static_assert(sizeof(stHeader) == 8, "stHeader size is not correct");
 
 	// フォーマット情報
 PACKED(
@@ -81,7 +63,7 @@ PACKED(
 		unsigned short r16;            // 不明(0x226)
 	} ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stFormat), 16);
+	static_assert(sizeof(stFormat) == 16, "stFormat size is not correct");
 
 	// デコード情報
 PACKED(
@@ -97,7 +79,7 @@ PACKED(
 		unsigned char r23;             // 不明(0)
 	} ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stDecode), 12);
+	static_assert(sizeof(stDecode) == 12, "stDecode size is not correct");
 
 PACKED(
 	struct stComp
@@ -115,7 +97,7 @@ PACKED(
 		unsigned char unk00[2]; 
 	} ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stComp), 16);
+	static_assert(sizeof(stComp) == 16, "stComp size is not correct");
 
 	// 可変ビットレート情報
 PACKED(
@@ -126,7 +108,7 @@ PACKED(
 		unsigned short r06;            // 不明
 	} ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stVBR), 8);
+	static_assert(sizeof(stVBR) == 8, "stVBR size is not correct");
 
 	// ATHテーブル情報
 PACKED(
@@ -136,7 +118,7 @@ PACKED(
 		unsigned short type;           // テーブルの種類(0:全て0 1:テーブル1)
 	} ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stATH), 6);
+	static_assert(sizeof(stATH) == 6, "stATH size is not correct");
 
 	// ループ情報
 PACKED(
@@ -149,7 +131,7 @@ PACKED(
 		unsigned short r0E;            // 不明(0x226)
 	} ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stLoop), 16);
+	static_assert(sizeof(stLoop) == 16, "stLoop size is not correct");
 
 	// CIPHテーブル情報(ブロックデータの暗号化テーブル情報)
 PACKED(
@@ -159,7 +141,7 @@ PACKED(
 		unsigned short type;           // テーブルの種類(0:暗号化なし 1:テーブル1 56:テーブル2)
 	} ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stCIPH), 6);
+	static_assert(sizeof(stCIPH) == 6, "stCIPH size is not correct");
 
 	// 相対ボリューム調節情報
 PACKED(
@@ -169,7 +151,7 @@ PACKED(
 		float volume;                  // ボリューム
 	}  ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stRVA), 8);
+	static_assert(sizeof(stRVA) == 8, "stRVA size is not correct");
 
 	// コメント情報
 PACKED(
@@ -180,7 +162,7 @@ PACKED(
 		// char 文字列[];
 	}  ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stComment), 5);
+	static_assert(sizeof(stComment) == 5, "stComment size is not correct");
 
 	// パディング？
 PACKED(
@@ -190,7 +172,7 @@ PACKED(
 		// ※サイズ不明
 	} ATTRPACK;
 )
-	STATIC_ASSERT(sizeof(stPAD), 4);
+	static_assert(sizeof(stPAD) == 4, "stPAD size is not correct");
 
 	unsigned int _version;
 	unsigned int _revision;
