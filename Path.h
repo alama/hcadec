@@ -6,7 +6,11 @@ namespace Path
 {
 	// Returns the filename from a path string.
 	// Excludes the file extension if "getExt" is false.
+#ifdef _WIN32
 	const std::string Filename(const std::string& path,		const bool getExt = true,		const char delim = '\\');
+#else
+	const std::string Filename(const std::string& path, const bool getExt = true, const char delim = '/');
+#endif
 	// Returns the file extension from a path string.
 	// Excludes "delim" if "getDot" is false.
 	const std::string Extension(const std::string& path,	const bool getDot = true,		const char delim = '.');

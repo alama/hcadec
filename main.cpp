@@ -68,7 +68,7 @@ int32_t atoi16(const char *s)
 //--------------------------------------------------
 // HCA → WAV
 //--------------------------------------------------
-bool HCAtoWAV(char *filenameIn, char *filenameOut, uint32_t pciphKey1, uint32_t pciphKey2)
+bool HCAtoWAV(const char *filenameIn, const char *filenameOut, uint32_t pciphKey1, uint32_t pciphKey2)
 {
 
 	// HCAファイルをデコード
@@ -121,7 +121,7 @@ void Decode(const std::string& filenameIn, const std::string& filenameOut, bool 
 		cout << "Decoding: " << Path::Filename(filenameIn) << " as " << Path::Filename(fileOut) << endl;
 
 		// デコード
-		if (!HCAtoWAV((char*)filenameIn.c_str(), (char*)fileOut.c_str(), ciphKey1, ciphKey2))
+		if (!HCAtoWAV(filenameIn.c_str(), fileOut.c_str(), ciphKey1, ciphKey2))
 		{
 			//wprintf(L"Error: HCAファイルのデコードに失敗しました。");
 			cout << "Error: HCA file decode has failed." << endl << endl;

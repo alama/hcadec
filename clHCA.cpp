@@ -83,11 +83,11 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size){
 
 	// ヘッダを解析
 	if (!Decode(fp, data, size, 0))return false;
-	data = (char *)data + _dataOffset;
+	data = (uint8_t *)data + _dataOffset;
 	size -= (int32_t)_dataOffset;
 
 	// デコード
-	for (; _blockCount&&size > 0; _blockCount--, data = (char *)data + _blockSize, size -= (int32_t)_blockSize){
+	for (; _blockCount&&size > 0; _blockCount--, data = (uint8_t *)data + _blockSize, size -= (int32_t)_blockSize){
 		if (!Decode(fp, data, size, _dataOffset)){
 			return false;
 		}
@@ -719,10 +719,10 @@ void clHCA::stChannel::Decode3(void){
 //   データからブロック内ブロック値を取得、計算
 //--------------------------------------------------
 void clHCA::stChannel::Decode4(clData *data){
-	static char list1[] = {
+	static uint8_t list1[] = {
 		0, 2, 3, 3, 4, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12,
 	};
-	static char list2[] = {
+	static uint8_t list2[] = {
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		2, 2, 2, 2, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0,
