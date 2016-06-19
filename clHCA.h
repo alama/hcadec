@@ -250,7 +250,7 @@ PACKED(
 	struct stChannel
 	{
 		double wave[8][0x80];
-		float base[0x80];
+		double base[0x80];
 		float block[0x80];
 		float wav1[0x80];
 		float wav2[0x80];
