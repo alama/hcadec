@@ -811,7 +811,7 @@ void clHCA::stChannel::Decode4(clData *data){
 		3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
 		3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
 	};
-	static float list3[] = {
+	static double list3[] = {
 		+0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0,
 		+0, +0, +1, -1, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0,
 		+0, +0, +1, +1, -1, -1, +2, -2, +0, +0, +0, +0, +0, +0, +0, +0,
@@ -822,14 +822,14 @@ void clHCA::stChannel::Decode4(clData *data){
 		+0, +0, +1, -1, +2, -2, +3, -3, +4, -4, +5, -5, +6, -6, +7, -7,
 	};
 	for (int32_t i = 0; i < count; i++){
-		float f;
+		double f;
 		int32_t s = scale[i];
 		int32_t bitSize = list1[s];
 		int32_t v = data->GetBit(bitSize);
 		if (s >= 8){
 			v = (1 - ((v & 1) << 1))*(v >> 1);
 			if (!v)data->AddBit(-1);
-			f = (float)v;
+			f = (double)v;
 		}
 		else{
 			v += s << 4;
@@ -851,8 +851,8 @@ void clHCA::stChannel::Decode5(int32_t index){
 			0x3F5B6DB7, 0x3F36DB6E, 0x3F124925, 0x3EDB6DB7, 0x3E924925, 0x3E124925, 0x00000000, 0x00000000,
 		};
 		int32_t i = this[1].count;
-		float f1 = ((const float *)listInt)[this[1].value2[index]];
-		float f2 = f1 - 2.0f;
+		double f1 = ((const float *)listInt)[this[1].value2[index]];
+		double f2 = f1 - 2.0;
 		double *p = &block[i];
 		double *n = &this[1].block[i];
 		for (; i < count; i++){
@@ -874,8 +874,8 @@ void clHCA::stChannel::Decode6(void){
 		double *d2 = &d[count2];
 		for (int32_t j = 0; j < count1; j++){
 			for (int32_t k = 0; k < count2; k++){
-				float a = *(s++);
-				float b = *(s++);
+				const double a = *(s++);
+				const double b = *(s++);
 				*(d1++) = b + a;
 				*(d2++) = a - b;
 			}
@@ -1034,10 +1034,10 @@ void clHCA::stChannel::Decode7(void){
 		double *d2 = &d1[count2 * 2 - 1];
 		for (int32_t j = 0; j < count1; j++){
 			for (int32_t k = 0; k < count2; k++){
-				float a = *(s1++);
-				float b = *(s2++);
-				float c = *(list1Float++);
-				float fd = *(list2Float++);
+				const double a = *(s1++);
+				const double b = *(s2++);
+				const double c = *(list1Float++);
+				const double fd = *(list2Float++);
 				*(d1++) = a*c - b*fd;
 				*(d2--) = a*fd + b*c;
 			}
