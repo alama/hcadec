@@ -129,10 +129,10 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 			uint16_t fmtBitCount;
 			char data[4];
 			uint32_t dataSize;
-		} wav = { 'R', 'I', 'F', 'F', 0, 'W', 'A', 'V', 'E', 'f', 'm', 't', ' ', 0x10, 1, 0, 0, 0, 0, 16, 'd', 'a', 't', 'a', 0 };
+		} wav = { 'R', 'I', 'F', 'F', 0, 'W', 'A', 'V', 'E', 'f', 'm', 't', ' ', 0x10, 1, 0, 0, 0, 0, 32, 'd', 'a', 't', 'a', 0 };
 		wav.fmtChannelCount = (uint16_t)_channelCount;
 		wav.fmtSamplingRate = _samplingRate;
-		wav.fmtSamplingSize = 2 * wav.fmtChannelCount;
+		wav.fmtSamplingSize = wav.fmtBitCount/8 * wav.fmtChannelCount;
 		wav.fmtSamplesPerSec = wav.fmtSamplingRate*wav.fmtSamplingSize;
 		wav.dataSize = _blockCount * 0x80 * 8 * wav.fmtSamplingSize;
 		wav.riffSize = wav.dataSize + 0x24;
@@ -384,35 +384,24 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 		_ciph.Mask(data, _blockSize);
 		clData d(data, _blockSize);
 		Decode(&d);
-#ifdef HAVE_SNDFILE
 		int32_t tmp[16*0x80*8];
 		int32_t *p = tmp;
 		int64_t v;
-#else
-		int16_t tmp[16*0x80*8];
-		int16_t *p = tmp;
-		int32_t v;
-#endif
 		for (int32_t i = 0; i < 8; i++){
 			for (int32_t j = 0; j < 0x80; j++){
 				for (int32_t k = 0; k < (int32_t)_channelCount; k++){
 					fm_t f = _channel[k].wave[i][j] * _rva_volume;
 					if (f>1)f = 1;
 					else if (f < -1)f = -1;
-#ifdef HAVE_SNDFILE
 					v = (int64_t)(f * 0x7FFFFFFF);
 					*p++ = (int32_t)v;
-#else
-					v = (int32_t)(f * 0x7FFF);
-					*p++ = (int16_t)v;
-#endif
 				}
 			}
 		}
 #ifdef HAVE_SNDFILE
 		sf_write_int((SNDFILE *)fp, tmp, _channelCount * 0x80 * 8);
 #else
-		fwrite(&tmp, sizeof(int16_t), _channelCount*0x80*8, (FILE *)fp);
+		fwrite(&tmp, sizeof(tmp[0]), _channelCount*0x80*8, (FILE *)fp);
 #endif
 	}
 
