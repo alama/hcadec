@@ -77,12 +77,16 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 		memset(&si, 0x00, sizeof(si));
 		si.samplerate = _samplingRate;
 		si.channels = _channelCount;
-		si.format = SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+		si.format = SF_FORMAT_FLAC|SF_FORMAT_PCM_24;
 		fp2 = sf_open(filenameWAV, SFM_WRITE, &si);
 		if (!fp2)
 		{
 			fclose(fp); return false;
 		}
+#if 0
+		double cl = 1.0;
+		sf_command(fp, SFC_SET_COMPRESSION_LEVEL, &cl, sizeof(cl));
+#endif
 #else
 		// WAVEヘッダを書き込み
 		struct stWAVEHeader{
@@ -354,21 +358,30 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 		_ciph.Mask(data, _blockSize);
 		clData d(data, _blockSize);
 		Decode(&d);
+#ifdef HAVE_SNDFILE
+		float tmp[_channelCount*0x80*8];
+		float *p = tmp;
+#else
 		int16_t tmp[_channelCount*0x80*8];
 		int16_t *p = tmp;
+#endif
 		for (int32_t i = 0; i < 8; i++){
 			for (int32_t j = 0; j < 0x80; j++){
 				for (int32_t k = 0; k < (int32_t)_channelCount; k++){
 					float f = _channel[k].wave[i][j] * _rva_volume;
 					if (f>1)f = 1;
 					else if (f < -1)f = -1;
+#ifdef HAVE_SNDFILE
+					*p++ = f;
+#else
 					int32_t v = (int32_t)(f * 0x7FFF);
 					*p++ = v;
+#endif
 				}
 			}
 		}
 #ifdef HAVE_SNDFILE
-		sf_write_short((SNDFILE *)fp, tmp, _channelCount*0x80*8);
+		sf_write_float((SNDFILE *)fp, tmp, _channelCount*0x80*8);
 #else
 		fwrite(&tmp, sizeof(int16_t), _channelCount*0x80*8, (FILE *)fp);
 #endif
