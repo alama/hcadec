@@ -101,7 +101,6 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 	{
 #ifdef HAVE_SNDFILE
 		SF_INFO si;
-		memset(&si, 0x00, sizeof(si));
 		si.samplerate = _samplingRate;
 		si.channels = _channelCount;
 		si.format = SF_FORMAT_FLAC|SF_FORMAT_PCM_24;

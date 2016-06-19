@@ -222,7 +222,7 @@ PACKED(
 	public:
 		clCIPH();
 		bool Init(int32_t type, uint32_t key1, uint32_t key2);
-		void Mask(void* data, int32_t size);
+		void Mask(void* data, int32_t size) FUNCHOT;
 
 	private:
 		uint8_t _table[0x100];
