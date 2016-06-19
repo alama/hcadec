@@ -85,7 +85,7 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 		}
 #if 0
 		double cl = 1.0;
-		sf_command(fp, SFC_SET_COMPRESSION_LEVEL, &cl, sizeof(cl));
+		sf_command(fp2, SFC_SET_COMPRESSION_LEVEL, &cl, sizeof(cl));
 #endif
 #else
 		// WAVEヘッダを書き込み
@@ -359,8 +359,8 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 		clData d(data, _blockSize);
 		Decode(&d);
 #ifdef HAVE_SNDFILE
-		float tmp[_channelCount*0x80*8];
-		float *p = tmp;
+		double tmp[_channelCount*0x80*8];
+		double *p = tmp;
 #else
 		int16_t tmp[_channelCount*0x80*8];
 		int16_t *p = tmp;
@@ -368,7 +368,7 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 		for (int32_t i = 0; i < 8; i++){
 			for (int32_t j = 0; j < 0x80; j++){
 				for (int32_t k = 0; k < (int32_t)_channelCount; k++){
-					float f = _channel[k].wave[i][j] * _rva_volume;
+					double f = _channel[k].wave[i][j] * _rva_volume;
 					if (f>1)f = 1;
 					else if (f < -1)f = -1;
 #ifdef HAVE_SNDFILE
@@ -381,7 +381,7 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 			}
 		}
 #ifdef HAVE_SNDFILE
-		sf_write_float((SNDFILE *)fp, tmp, _channelCount*0x80*8);
+		sf_write_double((SNDFILE *)fp, tmp, _channelCount*0x80*8);
 #else
 		fwrite(&tmp, sizeof(int16_t), _channelCount*0x80*8, (FILE *)fp);
 #endif
