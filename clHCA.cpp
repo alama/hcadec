@@ -4,6 +4,9 @@
 //--------------------------------------------------
 #include "clHCA.h"
 #include <memory.h>
+#ifdef HAVE_SNDFILE
+#include <sndfile.h>
+#endif
 
 //--------------------------------------------------
 // インライン関数
@@ -46,14 +49,66 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 	if (!(filename&&filenameWAV))return false;
 
 	// 開く
-	FILE *fp, *fp2;
+	FILE *fp;
+#ifdef HAVE_SNDFILE
+	SNDFILE *fp2 = NULL;
+#else
+	FILE *fp2;
+#endif
 	if (fopen_s(&fp, filename, "rb"))return false;
+#ifndef HAVE_SNDFILE
 	if (fopen_s(&fp2, filenameWAV, "wb")){ fclose(fp); return false; }
+#endif
 
 	// ヘッダを解析
 	uint8_t data[0x800];
 	fread(data, sizeof(data), 1, fp);
-	if (!Decode(fp2, data, sizeof(data), 0)){ fclose(fp2); fclose(fp); return false; }
+	if (!Decode(fp2, data, sizeof(data), 0))
+	{
+#ifndef HAVE_SNDFILE
+		fclose(fp2);
+#endif
+		fclose(fp); return false;
+	}
+	else
+	{
+#ifdef HAVE_SNDFILE
+		SF_INFO si;
+		memset(&si, 0x00, sizeof(si));
+		si.samplerate = _samplingRate;
+		si.channels = _channelCount;
+		si.format = SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+		fp2 = sf_open(filenameWAV, SFM_WRITE, &si);
+		if (!fp2)
+		{
+			fclose(fp); return false;
+		}
+#else
+		// WAVEヘッダを書き込み
+		struct stWAVEHeader{
+			char riff[4];
+			uint32_t riffSize;
+			char wave[4];
+			char fmt[4];
+			uint32_t fmtSize;
+			uint16_t fmtType;
+			uint16_t fmtChannelCount;
+			uint32_t fmtSamplingRate;
+			uint32_t fmtSamplesPerSec;
+			uint16_t fmtSamplingSize;
+			uint16_t fmtBitCount;
+			char data[4];
+			uint32_t dataSize;
+		} wav = { 'R', 'I', 'F', 'F', 0, 'W', 'A', 'V', 'E', 'f', 'm', 't', ' ', 0x10, 1, 0, 0, 0, 0, 16, 'd', 'a', 't', 'a', 0 };
+		wav.fmtChannelCount = (uint16_t)_channelCount;
+		wav.fmtSamplingRate = _samplingRate;
+		wav.fmtSamplingSize = 2 * wav.fmtChannelCount;
+		wav.fmtSamplesPerSec = wav.fmtSamplingRate*wav.fmtSamplingSize;
+		wav.dataSize = _blockCount * 0x80 * 8 * wav.fmtSamplingSize;
+		wav.riffSize = wav.dataSize + 0x24;
+		fwrite(&wav, sizeof(wav), 1, fp2);
+#endif
+	}
 	fseek(fp, (int32_t)_dataOffset - 0x800, SEEK_CUR);
 
 	// 音量を設定
@@ -61,12 +116,24 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 
 	// デコード
 	uint8_t *data2 = new uint8_t[_blockSize];
-	if (!data2){ fclose(fp2); fclose(fp); return false; }
+	if (!data2)
+	{
+#ifdef HAVE_SNDFILE
+		sf_close(fp2);
+#else
+		fclose(fp2);
+#endif
+		fclose(fp); return false;
+	}
 	for (; _blockCount; _blockCount--){
 		fread(data2, _blockSize, 1, fp);
 		if (!Decode(fp2, data2, _blockSize, _dataOffset)){
 			delete[] data2;
+#ifdef HAVE_SNDFILE
+			sf_close(fp2);
+#else
 			fclose(fp2);
+#endif
 			fclose(fp);
 			return false;
 		}
@@ -75,7 +142,11 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 
 	// 閉じる
 	fclose(fp);
+#ifdef HAVE_SNDFILE
+	sf_close(fp2);
+#else
 	fclose(fp2);
+#endif
 
 	return true;
 }
@@ -122,11 +193,14 @@ bool clHCA::Decode2(FILE *fp, FILE *fpHCA, size_t size){
 //--------------------------------------------------
 // デコード
 //--------------------------------------------------
-bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
+bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 {
 
 	// チェック
-	if (!(fp&&data))return false;
+#ifndef HAVE_SNDFILE
+	if (!fp)return false;
+#endif
+	if (!data)return false;
 
 	// ヘッダ
 	if (address == 0)
@@ -271,31 +345,6 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 		if (!_ath.Init(_ath_type, _samplingRate))return false;
 		if (!_ciph.Init(_ciph_type, _ciph_key1, _ciph_key2))return false;
 		if (!InitDecode(_channelCount, _dec_r1E, _dec_r1F, _dec_count1, _dec_count2, _dec_r22, _dec_r23))return false;
-
-		// WAVEヘッダを書き込み
-		struct stWAVEHeader{
-			char riff[4];
-			uint32_t riffSize;
-			char wave[4];
-			char fmt[4];
-			uint32_t fmtSize;
-			uint16_t fmtType;
-			uint16_t fmtChannelCount;
-			uint32_t fmtSamplingRate;
-			uint32_t fmtSamplesPerSec;
-			uint16_t fmtSamplingSize;
-			uint16_t fmtBitCount;
-			char data[4];
-			uint32_t dataSize;
-		}wav = { 'R', 'I', 'F', 'F', 0, 'W', 'A', 'V', 'E', 'f', 'm', 't', ' ', 0x10, 1, 0, 0, 0, 0, 16, 'd', 'a', 't', 'a', 0 };
-		wav.fmtChannelCount = (uint16_t)_channelCount;
-		wav.fmtSamplingRate = _samplingRate;
-		wav.fmtSamplingSize = 2 * wav.fmtChannelCount;
-		wav.fmtSamplesPerSec = wav.fmtSamplingRate*wav.fmtSamplingSize;
-		wav.dataSize = _blockCount * 0x80 * 8 * wav.fmtSamplingSize;
-		wav.riffSize = wav.dataSize + 0x24;
-		fwrite(&wav, sizeof(wav), 1, fp);
-
 	}
 
 	// データ
@@ -318,7 +367,11 @@ bool clHCA::Decode(FILE *fp, void *data, size_t size, uint32_t address)
 				}
 			}
 		}
-		fwrite(&tmp, sizeof(int16_t), _channelCount*0x80*8, fp);
+#ifdef HAVE_SNDFILE
+		sf_write_short((SNDFILE *)fp, tmp, _channelCount*0x80*8);
+#else
+		fwrite(&tmp, sizeof(int16_t), _channelCount*0x80*8, (FILE *)fp);
+#endif
 	}
 
 	return true;
