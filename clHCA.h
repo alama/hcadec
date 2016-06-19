@@ -253,9 +253,9 @@ PACKED(
 	{
 		double wave[8][0x80];
 		double base[0x80];
-		float block[0x80];
-		float wav1[0x80];
-		float wav2[0x80];
+		double block[0x80];
+		double wav1[0x80];
+		double wav2[0x80];
 		double wav3[0x80];
 		uint8_t value[0x80];
 		uint8_t scale[0x80];
