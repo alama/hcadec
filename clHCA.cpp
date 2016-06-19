@@ -103,7 +103,7 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 		SF_INFO si;
 		si.samplerate = _samplingRate;
 		si.channels = _channelCount;
-		si.format = SF_FORMAT_FLAC|SF_FORMAT_PCM_24;
+		si.format = SF_FORMAT_WAV|SF_FORMAT_PCM_32;
 		fp2 = sf_open(filenameWAV, SFM_WRITE, &si);
 		if (!fp2)
 		{
@@ -385,11 +385,13 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 		clData d(data, _blockSize);
 		Decode(&d);
 #ifdef HAVE_SNDFILE
-		fm_t tmp[16*0x80*8];
-		fm_t *p = tmp;
+		int32_t tmp[16*0x80*8];
+		int32_t *p = tmp;
+		int64_t v;
 #else
 		int16_t tmp[16*0x80*8];
 		int16_t *p = tmp;
+		int32_t v;
 #endif
 		for (int32_t i = 0; i < 8; i++){
 			for (int32_t j = 0; j < 0x80; j++){
@@ -398,20 +400,17 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 					if (f>1)f = 1;
 					else if (f < -1)f = -1;
 #ifdef HAVE_SNDFILE
-					*p++ = f;
+					v = (int64_t)(f * 0x7FFFFFFF);
+					*p++ = (int32_t)v;
 #else
-					int32_t v = (int32_t)(f * 0x7FFF);
+					v = (int32_t)(f * 0x7FFF);
 					*p++ = (int16_t)v;
 #endif
 				}
 			}
 		}
 #ifdef HAVE_SNDFILE
-#if (UINTPTR_MAX == UINT64_MAX)
-		sf_write_double((SNDFILE *)fp, tmp, _channelCount * 0x80 * 8);
-#else
-		sf_write_float((SNDFILE *)fp, tmp, _channelCount * 0x80 * 8);
-#endif
+		sf_write_int((SNDFILE *)fp, tmp, _channelCount * 0x80 * 8);
 #else
 		fwrite(&tmp, sizeof(int16_t), _channelCount*0x80*8, (FILE *)fp);
 #endif

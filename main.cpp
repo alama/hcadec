@@ -115,11 +115,7 @@ void Decode(const std::string& filenameIn, const std::string& filenameOut, bool 
 		// デフォルト出力ファイル名
 		if (filenameOut.empty())
 		{
-#ifdef HAVE_SNDFILE
-			fileOut = Path::Directory(filenameIn) + Path::Filename(filenameIn, false) + ".flac";
-#else
 			fileOut = Path::Directory(filenameIn) + Path::Filename(filenameIn, false) + ".wav";
-#endif
 		}
 		else
 			fileOut = filenameOut;
