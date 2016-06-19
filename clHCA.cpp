@@ -4,6 +4,9 @@
 //--------------------------------------------------
 #include "clHCA.h"
 #include <memory.h>
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
 #ifdef HAVE_SNDFILE
 #include <sndfile.h>
 #endif
@@ -18,6 +21,13 @@ inline  int32_t bswap(int32_t v){ return __builtin_bswap32(v); }
 inline uint32_t bswap(uint32_t v){return __builtin_bswap32(v); }
 inline  int64_t bswap(int64_t v){ return __builtin_bswap64(v); }
 inline uint64_t bswap(uint64_t v){ return __builtin_bswap64(v); }
+#elif defined ( _MSC_VER)
+inline  int16_t bswap(int16_t v) { return _byteswap_ushort(v); }
+inline uint16_t bswap(uint16_t v) { return _byteswap_ushort(v); }
+inline  int32_t bswap(int32_t v) { return _byteswap_ulong(v); }
+inline uint32_t bswap(uint32_t v) { return _byteswap_ulong(v); }
+inline  int64_t bswap(int64_t v) { return _byteswap_uint64(v); }
+inline uint64_t bswap(uint64_t v) { return _byteswap_uint64(v); }
 #else
 inline  int16_t bswap(int16_t v){ int16_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline uint16_t bswap(uint16_t v){ uint16_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
