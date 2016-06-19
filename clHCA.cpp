@@ -359,10 +359,10 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 		clData d(data, _blockSize);
 		Decode(&d);
 #ifdef HAVE_SNDFILE
-		double tmp[_channelCount*0x80*8];
+		double tmp[16*0x80*8];
 		double *p = tmp;
 #else
-		int16_t tmp[_channelCount*0x80*8];
+		int16_t tmp[16*0x80*8];
 		int16_t *p = tmp;
 #endif
 		for (int32_t i = 0; i < 8; i++){
@@ -375,7 +375,7 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 					*p++ = f;
 #else
 					int32_t v = (int32_t)(f * 0x7FFF);
-					*p++ = v;
+					*p++ = (int16_t)v;
 #endif
 				}
 			}
