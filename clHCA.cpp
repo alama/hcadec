@@ -1070,8 +1070,8 @@ void clHCA::stChannel::Decode8(int32_t index){
 			}
 	};
 	float *s1 = &wav2[0x40];
-	float *s2 = wav3;
-	float *d = wave[index];
+	double *s2 = wav3;
+	double *d = wave[index];
 	float *listFloat = (float *)listInt;
 	for (int32_t i = 0; i < 0x40; i++){
 		*(d++) = *(s1++)**(listFloat++) + *(s2++);
