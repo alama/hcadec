@@ -236,9 +236,9 @@ PACKED(
 	{
 	public:
 		clData(void* data, int32_t size);
-		int32_t CheckBit(int32_t bitSize);
-		int32_t GetBit(int32_t bitSize);
-		void AddBit(int32_t bitSize);
+		int32_t CheckBit(int32_t bitSize) FUNCHOT;
+		int32_t GetBit(int32_t bitSize) FUNCHOT;
+		void AddBit(int32_t bitSize) FUNCHOT;
 
 	private:
 		uint8_t* _data;
