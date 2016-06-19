@@ -37,7 +37,14 @@ inline  int64_t bswap(int64_t v){ int64_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v
 inline uint64_t bswap(uint64_t v){ uint64_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 #endif
 
-inline float bswap(float v){ uint32_t i = bswap(*(uint32_t *)&v); return *(float *)&i; }
+inline float bswap(float v){
+		float ft = v;
+		int32_t it = 0;
+		memcpy(&ft, &it, sizeof (uint32_t));
+		it = bswap(it);
+		memcpy(&it, &ft, sizeof (float));
+		return ft;
+	}
 
 //--------------------------------------------------
 // コンストラクタ

@@ -1,14 +1,13 @@
 CXXFLAGS+=-Wall
 CXXFLAGS+=-W
-#CXXFLAGS+=-Wno-strict-aliasing
 CXXFLAGS+=-Werror
+ifdef PROFILE
+CXXFLAGS+= -pg -g
+endif
 ifdef DEBUG
-CXXFLAGS:=-Og -g -march=native $(CXXFLAGS)
+CXXFLAGS:=-Og -ggdb -march=native $(CXXFLAGS)
 else
 CXXFLAGS:=-O3 -s -march=native $(CXXFLAGS)
-endif
-ifdef PROFILE
-CXXFLAGS+= -pg
 endif
 PKGCONFIG:=pkg-config
 #Need g++ 4.8+
@@ -18,13 +17,13 @@ CPPFLAGS+=$(shell $(PKGCONFIG) sndfile --cflags)
 CPPFLAGS+=-DHAVE_SNDFILE
 LDFLAGS+=$(shell $(PKGCONFIG) sndfile --libs)
 endif
+ifdef PROFILE
+LDFLAGS+=-pg -g
+endif
 ifdef DEBUG
-LDFLAGS+=-g
+LDFLAGS+=-ggdb
 else
 LDFLAGS+=-s
-endif
-ifdef PROFILE
-LDFLAGS+=-pg
 endif
 
 SRCS=clHCA.cpp  main.cpp  Path.cpp
