@@ -11,12 +11,22 @@
 //--------------------------------------------------
 // インライン関数
 //--------------------------------------------------
-inline int16_t bswap(int16_t v){ int16_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
+#ifdef __GNUC__
+inline  int16_t bswap(int16_t v){ return __builtin_bswap16(v); }
+inline uint16_t bswap(uint16_t v){ return __builtin_bswap16(v); }
+inline  int32_t bswap(int32_t v){ return __builtin_bswap32(v); }
+inline uint32_t bswap(uint32_t v){return __builtin_bswap32(v); }
+inline  int64_t bswap(int64_t v){ return __builtin_bswap64(v); }
+inline uint64_t bswap(uint64_t v){ return __builtin_bswap64(v); }
+#else
+inline  int16_t bswap(int16_t v){ int16_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline uint16_t bswap(uint16_t v){ uint16_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
-inline int32_t bswap(int32_t v){ int32_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
+inline  int32_t bswap(int32_t v){ int32_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
 inline uint32_t bswap(uint32_t v){ uint32_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
-inline long long bswap(long long v){ long long r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
-inline unsigned long long bswap(unsigned long long v){ unsigned long long r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
+inline  int64_t bswap(int64_t v){ int64_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
+inline uint64_t bswap(uint64_t v){ uint64_t r = v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; r <<= 8; v >>= 8; r |= v & 0xFF; return r; }
+#endif
+
 inline float bswap(float v){ uint32_t i = bswap(*(uint32_t *)&v); return *(float *)&i; }
 
 //--------------------------------------------------

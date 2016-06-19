@@ -8,8 +8,10 @@
 
 #ifdef __GNUC__
 #define ATTRPACK __attribute__((packed, ms_struct))
+#define FUNCHOT __attribute__((hot))
 #else
 #define ATTRPACK
+#define FUNCHOT
 #endif
 
 #ifdef _MSC_VER
@@ -37,7 +39,7 @@ public:
 	bool Decode(FILE* fp, void* data, size_t size);
 	bool Decode2(FILE* fp, FILE* fpHCA, size_t size);
 	bool Decode(FILE * fp, void * data, size_t size, uint32_t address, FILE * fp_hca);
-	bool Decode(void* fp, void* data, size_t size, uint32_t address);
+	bool Decode(void* fp, void* data, size_t size, uint32_t address) FUNCHOT;
 
 
 private:
@@ -260,14 +262,14 @@ PACKED(
 		uint8_t value2[8];
 		int32_t type;
 		int32_t count;
-		void Decode1(clData* data);
-		void Decode2(int32_t a, int32_t b, uint8_t* ath);
-		void Decode3(void);
-		void Decode4(clData* data);
-		void Decode5(int32_t index);
-		void Decode6(void);
-		void Decode7(void);
-		void Decode8(int32_t index);
+		void Decode1(clData* data) FUNCHOT;
+		void Decode2(int32_t a, int32_t b, uint8_t* ath) FUNCHOT;
+		void Decode3(void) FUNCHOT;
+		void Decode4(clData* data) FUNCHOT;
+		void Decode5(int32_t index) FUNCHOT;
+		void Decode6(void) FUNCHOT;
+		void Decode7(void) FUNCHOT;
+		void Decode8(int32_t index) FUNCHOT;
 	} _channel[0x10];
 
 	uint32_t _ciph_key1;
