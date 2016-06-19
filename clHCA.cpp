@@ -762,7 +762,7 @@ void clHCA::stChannel::Decode2(int32_t a, int32_t b, uint8_t *ath){
 //   値とスケールからブロック内基準値を計算
 //--------------------------------------------------
 void clHCA::stChannel::Decode3(void){
-	static uint32_t valueInt[] = {
+	static const uint32_t valueInt[] = {
 		0x342A8D26, 0x34633F89, 0x3497657D, 0x34C9B9BE, 0x35066491, 0x353311C4, 0x356E9910, 0x359EF532,
 		0x35D3CCF1, 0x360D1ADF, 0x363C034A, 0x367A83B3, 0x36A6E595, 0x36DE60F5, 0x371426FF, 0x3745672A,
 		0x37838359, 0x37AF3B79, 0x37E97C38, 0x381B8D3A, 0x384F4319, 0x388A14D5, 0x38B7FBF0, 0x38F5257D,
@@ -772,12 +772,12 @@ void clHCA::stChannel::Decode3(void){
 		0x3E1C6573, 0x3E506334, 0x3E8AD4C6, 0x3EB8FBAF, 0x3EF67A41, 0x3F243516, 0x3F5ACB94, 0x3F91C3D3,
 		0x3FC238D2, 0x400164D2, 0x402C6897, 0x4065B907, 0x40990B88, 0x40CBEC15, 0x4107DB35, 0x413504F3,
 	};
-	static uint32_t scaleInt[] = {
+	static const uint32_t scaleInt[] = {
 		0x00000000, 0x3F2AAAAB, 0x3ECCCCCD, 0x3E924925, 0x3E638E39, 0x3E3A2E8C, 0x3E1D89D9, 0x3E088889,
 		0x3D842108, 0x3D020821, 0x3C810204, 0x3C008081, 0x3B804020, 0x3B002008, 0x3A801002, 0x3A000801,
 	};
-	static float *valueFloat = (float *)valueInt;
-	static float *scaleFloat = (float *)scaleInt;
+	static const float *valueFloat = (const float *)valueInt;
+	static const float *scaleFloat = (const float *)scaleInt;
 	for (int32_t i = 0; i < count; i++){
 		base[i] = valueFloat[value[i]] * scaleFloat[scale[i]];
 	}
@@ -836,12 +836,12 @@ void clHCA::stChannel::Decode4(clData *data){
 //--------------------------------------------------
 void clHCA::stChannel::Decode5(int32_t index){
 	if (type == 1){
-		static uint32_t listInt[] = {
+		static const uint32_t listInt[] = {
 			0x40000000, 0x3FEDB6DB, 0x3FDB6DB7, 0x3FC92492, 0x3FB6DB6E, 0x3FA49249, 0x3F924925, 0x3F800000,
 			0x3F5B6DB7, 0x3F36DB6E, 0x3F124925, 0x3EDB6DB7, 0x3E924925, 0x3E124925, 0x00000000, 0x00000000,
 		};
 		int32_t i = this[1].count;
-		float f1 = ((float *)listInt)[this[1].value2[index]];
+		float f1 = ((const float *)listInt)[this[1].value2[index]];
 		float f2 = f1 - 2.0f;
 		float *p = &block[i];
 		float *n = &this[1].block[i];
@@ -880,7 +880,7 @@ void clHCA::stChannel::Decode6(void){
 // デコード第七段階
 //--------------------------------------------------
 void clHCA::stChannel::Decode7(void){
-	static uint32_t list1Int[7][0x40] = {
+	static const uint32_t list1Int[7][0x40] = {
 			{
 				0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75,
 				0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75, 0x3DA73D75,
@@ -946,7 +946,7 @@ void clHCA::stChannel::Decode7(void){
 				0x3F44E3F5, 0x3F42DE29, 0x3F40D0DA, 0x3F3EBC1B, 0x3F3CA003, 0x3F3A7CA4, 0x3F385216, 0x3F36206C,
 			}
 	};
-	static uint32_t list2Int[7][0x40] = {
+	static const uint32_t list2Int[7][0x40] = {
 			{
 				0xBD0A8BD4, 0x3D0A8BD4, 0x3D0A8BD4, 0xBD0A8BD4, 0x3D0A8BD4, 0xBD0A8BD4, 0xBD0A8BD4, 0x3D0A8BD4,
 				0x3D0A8BD4, 0xBD0A8BD4, 0xBD0A8BD4, 0x3D0A8BD4, 0xBD0A8BD4, 0x3D0A8BD4, 0x3D0A8BD4, 0xBD0A8BD4,
@@ -1016,8 +1016,8 @@ void clHCA::stChannel::Decode7(void){
 	float *s = wav1;
 	float *d = wav;
 	for (int32_t i = 0, count1 = 0x40, count2 = 1; i < 7; i++, count1 >>= 1, count2 <<= 1){
-		float *list1Float = (float *)list1Int[i];
-		float *list2Float = (float *)list2Int[i];
+		const float *list1Float = (const float *)list1Int[i];
+		const float *list2Float = (const float *)list2Int[i];
 		float *s1 = s;
 		float *s2 = &s1[count2];
 		float *d1 = d;
@@ -1048,7 +1048,7 @@ void clHCA::stChannel::Decode7(void){
 // デコード第八段階
 //--------------------------------------------------
 void clHCA::stChannel::Decode8(int32_t index){
-	static uint32_t listInt[2][0x40] = {
+	static const uint32_t listInt[2][0x40] = {
 			{
 				0x3A3504F0, 0x3B0183B8, 0x3B70C538, 0x3BBB9268, 0x3C04A809, 0x3C308200, 0x3C61284C, 0x3C8B3F17,
 				0x3CA83992, 0x3CC77FBD, 0x3CE91110, 0x3D0677CD, 0x3D198FC4, 0x3D2DD35C, 0x3D434643, 0x3D59ECC1,
@@ -1072,7 +1072,7 @@ void clHCA::stChannel::Decode8(int32_t index){
 	float *s1 = &wav2[0x40];
 	double *s2 = wav3;
 	double *d = wave[index];
-	float *listFloat = (float *)listInt;
+	const float *listFloat = (const float *)listInt;
 	for (int32_t i = 0; i < 0x40; i++){
 		*(d++) = *(s1++)**(listFloat++) + *(s2++);
 	}
