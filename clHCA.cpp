@@ -385,8 +385,8 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 		clData d(data, _blockSize);
 		Decode(&d);
 #ifdef HAVE_SNDFILE
-		float tmp[16*0x80*8];
-		float *p = tmp;
+		fm_t tmp[16*0x80*8];
+		fm_t *p = tmp;
 #else
 		int16_t tmp[16*0x80*8];
 		int16_t *p = tmp;
@@ -394,7 +394,7 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 		for (int32_t i = 0; i < 8; i++){
 			for (int32_t j = 0; j < 0x80; j++){
 				for (int32_t k = 0; k < (int32_t)_channelCount; k++){
-					float f = _channel[k].wave[i][j] * _rva_volume;
+					fm_t f = _channel[k].wave[i][j] * _rva_volume;
 					if (f>1)f = 1;
 					else if (f < -1)f = -1;
 #ifdef HAVE_SNDFILE
@@ -407,7 +407,11 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 			}
 		}
 #ifdef HAVE_SNDFILE
-		sf_write_float((SNDFILE *)fp, tmp, _channelCount*0x80*8);
+#if (UINTPTR_MAX == UINT64_MAX)
+		sf_write_double((SNDFILE *)fp, tmp, _channelCount * 0x80 * 8);
+#else
+		sf_write_float((SNDFILE *)fp, tmp, _channelCount * 0x80 * 8);
+#endif
 #else
 		fwrite(&tmp, sizeof(int16_t), _channelCount*0x80*8, (FILE *)fp);
 #endif
@@ -827,7 +831,7 @@ void clHCA::stChannel::Decode4(clData *data){
 		3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
 		3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
 	};
-	static float list3[] = {
+	static fm_t list3[] = {
 		+0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0,
 		+0, +0, +1, -1, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0, +0,
 		+0, +0, +1, +1, -1, -1, +2, -2, +0, +0, +0, +0, +0, +0, +0, +0,
@@ -838,14 +842,14 @@ void clHCA::stChannel::Decode4(clData *data){
 		+0, +0, +1, -1, +2, -2, +3, -3, +4, -4, +5, -5, +6, -6, +7, -7,
 	};
 	for (int32_t i = 0; i < count; i++){
-		float f;
+		fm_t f;
 		int32_t s = scale[i];
 		int32_t bitSize = list1[s];
 		int32_t v = data->GetBit(bitSize);
 		if (s >= 8){
 			v = (1 - ((v & 1) << 1))*(v >> 1);
 			if (!v)data->AddBit(-1);
-			f = (float)v;
+			f = (fm_t)v;
 		}
 		else{
 			v += s << 4;
@@ -867,10 +871,10 @@ void clHCA::stChannel::Decode5(int32_t index){
 			0x3F5B6DB7, 0x3F36DB6E, 0x3F124925, 0x3EDB6DB7, 0x3E924925, 0x3E124925, 0x00000000, 0x00000000,
 		};
 		int32_t i = this[1].count;
-		float f1 = ((const float *)listInt)[this[1].value2[index]];
-		float f2 = f1 - 2.0f;
-		float *p = &block[i];
-		float *n = &this[1].block[i];
+		fm_t f1 = ((const float *)listInt)[this[1].value2[index]];
+		fm_t f2 = f1 - 2.0f;
+		fm_t *p = &block[i];
+		fm_t *n = &this[1].block[i];
 		for (; i < count; i++){
 			*(n++) = *p*f2;
 			*p = *p*f1;
@@ -883,22 +887,22 @@ void clHCA::stChannel::Decode5(int32_t index){
 // デコード第六段階
 //--------------------------------------------------
 void clHCA::stChannel::Decode6(void){
-	float *s = block;
-	float *d = wav1;
+	fm_t *s = block;
+	fm_t *d = wav1;
 	for (int32_t i = 0, count1 = 1, count2 = 0x40; i < 7; i++, count1 <<= 1, count2 >>= 1){
-		float *d1 = d;
-		float *d2 = &d[count2];
+		fm_t *d1 = d;
+		fm_t *d2 = &d[count2];
 		for (int32_t j = 0; j < count1; j++){
 			for (int32_t k = 0; k < count2; k++){
-				const float a = *(s++);
-				const float b = *(s++);
+				const fm_t a = *(s++);
+				const fm_t b = *(s++);
 				*(d1++) = b + a;
 				*(d2++) = a - b;
 			}
 			d1 += count2;
 			d2 += count2;
 		}
-		float *w = &s[-0x80]; s = d; d = w;
+		fm_t *w = &s[-0x80]; s = d; d = w;
 	}
 }
 
@@ -1038,22 +1042,22 @@ void clHCA::stChannel::Decode7(void){
 				0xBF239DA9, 0xBF26050A, 0xBF286605, 0xBF2AC082, 0xBF2D1469, 0xBF2F61A5, 0xBF31A81D, 0xBF33E7BC,
 			}
 	};
-	float wav[0x80];
-	float *s = wav1;
-	float *d = wav;
+	fm_t wav[0x80];
+	fm_t *s = wav1;
+	fm_t *d = wav;
 	for (int32_t i = 0, count1 = 0x40, count2 = 1; i < 7; i++, count1 >>= 1, count2 <<= 1){
 		const float *list1Float = (const float *)list1Int[i];
 		const float *list2Float = (const float *)list2Int[i];
-		float *s1 = s;
-		float *s2 = &s1[count2];
-		float *d1 = d;
-		float *d2 = &d1[count2 * 2 - 1];
+		fm_t *s1 = s;
+		fm_t *s2 = &s1[count2];
+		fm_t *d1 = d;
+		fm_t *d2 = &d1[count2 * 2 - 1];
 		for (int32_t j = 0; j < count1; j++){
 			for (int32_t k = 0; k < count2; k++){
-				const float a = *(s1++);
-				const float b = *(s2++);
-				const float c = *(list1Float++);
-				const float fd = *(list2Float++);
+				const fm_t a = *(s1++);
+				const fm_t b = *(s2++);
+				const fm_t c = *(list1Float++);
+				const fm_t fd = *(list2Float++);
 				*(d1++) = a*c - b*fd;
 				*(d2--) = a*fd + b*c;
 			}
@@ -1062,7 +1066,7 @@ void clHCA::stChannel::Decode7(void){
 			d1 += count2;
 			d2 += count2 * 3;
 		}
-		float *w = s; s = d; d = w;
+		fm_t *w = s; s = d; d = w;
 	}
 	d = wav2;
 	for (int32_t i = 0; i < 0x80; i++){
@@ -1095,9 +1099,9 @@ void clHCA::stChannel::Decode8(int32_t index){
 				0xBF7FF688, 0xBF7FF9D0, 0xBF7FFC32, 0xBF7FFDDA, 0xBF7FFEED, 0xBF7FFF8F, 0xBF7FFFDF, 0xBF7FFFFC,
 			}
 	};
-	float *s1 = &wav2[0x40];
-	float *s2 = wav3;
-	float *d = wave[index];
+	fm_t *s1 = &wav2[0x40];
+	fm_t *s2 = wav3;
+	fm_t *d = wave[index];
 	const float *listFloat = (const float *)listInt;
 	for (int32_t i = 0; i < 0x40; i++){
 		*(d++) = *(s1++)**(listFloat++) + *(s2++);

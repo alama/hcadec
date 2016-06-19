@@ -23,6 +23,12 @@
 #define PACKED(x) x
 #endif
 
+#if (UINTPTR_MAX == UINT64_MAX)
+typedef double fm_t;
+#else
+typedef float fm_t;
+#endif
+
 //--------------------------------------------------
 // HCA(High Compression Audio)クラス
 //--------------------------------------------------
@@ -251,12 +257,12 @@ PACKED(
 
 	struct stChannel
 	{
-		float wave[8][0x80];
-		float base[0x80];
-		float block[0x80];
-		float wav1[0x80];
-		float wav2[0x80];
-		float wav3[0x80];
+		fm_t wave[8][0x80];
+		fm_t base[0x80];
+		fm_t block[0x80];
+		fm_t wav1[0x80];
+		fm_t wav2[0x80];
+		fm_t wav3[0x80];
 		uint8_t value[0x80];
 		uint8_t scale[0x80];
 		uint8_t value2[8];
