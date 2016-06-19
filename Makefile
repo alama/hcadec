@@ -2,7 +2,7 @@ CXXFLAGS+=-Wall
 CXXFLAGS+=-W
 CXXFLAGS+=-Wno-strict-aliasing
 CXXFLAGS+=-Werror
-CXXFLAGS:=-Og -g -march=native -msse2 -mfpmath=sse $(CXXFLAGS)
+CXXFLAGS:=-Og -g -march=native $(CXXFLAGS)
 PKGCONFIG:=pkg-config
 #Need g++ 4.8+
 CPPFLAGS+=-std=c++11
