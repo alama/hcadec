@@ -386,15 +386,13 @@ bool clHCA::Decode(void *fp, void *data, size_t size, uint32_t address)
 		Decode(&d);
 		int32_t tmp[16*0x80*8];
 		int32_t *p = tmp;
-		int64_t v;
 		for (int32_t i = 0; i < 8; i++){
 			for (int32_t j = 0; j < 0x80; j++){
 				for (int32_t k = 0; k < (int32_t)_channelCount; k++){
 					fm_t f = _channel[k].wave[i][j] * _rva_volume;
-					if (f>1)f = 1;
-					else if (f < -1)f = -1;
-					v = (int64_t)(f * 0x7FFFFFFF);
-					*p++ = (int32_t)v;
+					if (f>1) *p++ = INT32_MAX;
+					else if (f < -1) *p++ = INT32_MIN;
+					else *p++ = (int32_t)(f * INT32_MAX);
 				}
 			}
 		}
