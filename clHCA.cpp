@@ -8,6 +8,7 @@
 #include <intrin.h>
 #endif
 #ifdef HAVE_SNDFILE
+#include <string>
 #include <sndfile.h>
 #endif
 
@@ -173,6 +174,13 @@ bool clHCA::Decode(const char *filename, const char *filenameWAV, float volume){
 	// 閉じる
 	fclose(fp);
 #ifdef HAVE_SNDFILE
+	std::string loopheader = "loop:";
+	std::string loopstart = "\nloopstart="+std::to_string(_loopStart);
+	std::string loopend = "\nloopend="+std::to_string(_loopEnd);
+	std::string loopOC = "\nloop0C="+std::to_string(_loop_r0C);
+	std::string loopOE = "\nloopOE="+std::to_string(_loop_r0E);
+	std::string comment = loopheader+loopstart+loopend+loopOC+loopOE;
+	sf_set_string(fp2, SF_STR_COMMENT, comment.c_str());
 	sf_close(fp2);
 #else
 	fclose(fp2);
