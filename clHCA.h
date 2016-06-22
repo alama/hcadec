@@ -48,6 +48,10 @@ public:
 	bool Decode(void* fp, void* data, size_t size, uint32_t address) FUNCHOT;
 
 
+	// TOOD
+	bool Encode(const char* filenameWAV, const char* filename, float volume = 1);
+	bool Encode(void* fp, void* data, size_t size, uint32_t address) FUNCHOT;
+
 private:
 
 PACKED(
@@ -194,13 +198,13 @@ PACKED(
 	uint32_t _fmt_r14;
 	uint32_t _fmt_r16;
 	uint32_t _blockSize;
-	uint32_t _dec_r1E;
-	uint32_t _dec_r1F;
+	int32_t _dec_r1E;
+	int32_t _dec_r1F;
 	uint32_t _dec_count1;
 	uint32_t _dec_count2;
 	uint32_t _dec_r22;
 	uint32_t _dec_r23;
-	uint32_t _vbr_r04;
+	int32_t _vbr_r04;
 	uint32_t _vbr_r06;
 	uint32_t _ath_type;
 	uint32_t _loopStart;
@@ -215,7 +219,7 @@ PACKED(
 	public:
 		clATH();
 		bool Init(int32_t type, uint32_t key);
-		uint8_t* GetTable(void);
+		const uint8_t* GetTable(void);
 
 	private:
 		uint8_t _table[0x80];
@@ -245,6 +249,7 @@ PACKED(
 		int32_t CheckBit(int32_t bitSize) FUNCHOT;
 		int32_t GetBit(int32_t bitSize) FUNCHOT;
 		void AddBit(int32_t bitSize) FUNCHOT;
+		void SetBit(int32_t bitSize, int32_t value);
 
 	private:
 		uint8_t* _data;
@@ -252,8 +257,9 @@ PACKED(
 		int32_t _bit;
 	};
 
-	bool InitDecode(int32_t channelCount, int32_t a, int32_t b, int32_t count1, int32_t count2, int32_t e, int32_t f);
+	bool InitDecode(uint32_t channelCount, int32_t a, int32_t b, uint32_t count1, uint32_t count2, uint32_t e, uint32_t f);
 	void Decode(clData* data);
+	void Encode(clData* data);
 
 	struct stChannel
 	{
@@ -269,13 +275,21 @@ PACKED(
 		int32_t type;
 		int32_t count;
 		void Decode1(clData* data) FUNCHOT;
-		void Decode2(int32_t a, int32_t b, uint8_t* ath) FUNCHOT;
+		void Decode2(int32_t a, int32_t b, const uint8_t* ath) FUNCHOT;
 		void Decode3(void) FUNCHOT;
 		void Decode4(clData* data) FUNCHOT;
 		void Decode5(int32_t index) FUNCHOT;
 		void Decode6(void) FUNCHOT;
 		void Decode7(void) FUNCHOT;
 		void Decode8(int32_t index) FUNCHOT;
+		void Encode1(clData* data);
+		void Encode2(int32_t *a, int32_t *b, const uint8_t* ath);
+		void Encode3(void);
+		void Encode4(clData* data);
+		void Encode5(int32_t index);
+		void Encode6(void);
+		void Encode7(void);
+		void Encode8(int32_t index);
 	} _channel[0x10];
 
 	uint32_t _ciph_key1;

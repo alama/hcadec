@@ -80,6 +80,22 @@ bool HCAtoWAV(const char *filenameIn, const char *filenameOut, uint32_t pciphKey
 	return true;
 }
 
+//--------------------------------------------------
+// WAV → HCA
+//--------------------------------------------------
+bool WAVtoHCA(const char *filenameIn, const char *filenameOut, uint32_t pciphKey1, uint32_t pciphKey2)
+{
+
+	// HCAファイルをデコード
+	clHCA hca(pciphKey1, pciphKey2);
+
+	if (!hca.Encode(filenameIn, filenameOut))
+		return false;
+
+	return true;
+}
+
+
 void Decode(const std::string& filenameIn, const std::string& filenameOut, bool list)
 {
 	if (list)
@@ -138,12 +154,72 @@ void Decode(const std::string& filenameIn, const std::string& filenameOut, bool 
 	}
 }
 
+void Encode(const std::string& filenameIn, const std::string& filenameOut, bool list)
+{
+	if (list)
+	{
+		ifstream listFile(filenameIn);
+
+		if (listFile.is_open())
+		{
+			for (string s; getline(listFile, s);)
+				Encode(s, filenameOut, false);
+
+			listFile.close();
+		}
+		else
+			return;
+
+	}
+	else
+	{
+		// 入力チェック
+		if (filenameIn.empty())
+		{
+			//wprintf(L"Error: 入力ファイルを指定してください。");
+			cout << "Error: Invalid input filename." << endl;
+#ifdef _WIN32
+			system("pause");
+#endif
+			return;
+		}
+
+		std::string fileOut;
+
+		// デフォルト出力ファイル名
+		if (filenameOut.empty())
+		{
+			fileOut = Path::Directory(filenameIn) + Path::Filename(filenameIn, false) + ".hca";
+		}
+		else
+			fileOut = filenameOut;
+
+		cout << "Decoding: " << Path::Filename(filenameIn) << " as " << Path::Filename(fileOut) << endl;
+
+		// デコード
+		if (!WAVtoHCA(filenameIn.c_str(), fileOut.c_str(), ciphKey1, ciphKey2))
+		{
+			//wprintf(L"Error: HCAファイルのデコードに失敗しました。");
+			cout << "Error: HCA file decode has failed." << endl << endl;
+			return;
+		}
+		else if (deleteSource)
+		{
+			cout << "Deleting " << filenameIn << "..." << endl;
+			remove(filenameIn.c_str());
+		}
+		cout << endl;
+	}
+}
+
+
 //--------------------------------------------------
 // メイン
 //--------------------------------------------------
 int32_t main(int32_t argc, char* argv[])
 {
 	int32_t result = 0;
+	bool encode = 0;
 
 	// This stuff speeds up std::cout by quite a bit
 	if (setvbuf(stdout, 0, _IOLBF, 4096) != 0)
@@ -186,10 +262,23 @@ int32_t main(int32_t argc, char* argv[])
 				ciphKey2 = atoi16(argv[++i]);
 				continue;
 			}
+			if (StringCompare(argv[i], "--encode") || StringCompare(argv[i], "-e"))
+			{
+				encode = 1;
+				continue;
+			}
+			if (StringCompare(argv[i], "--encode") || StringCompare(argv[i], "-e"))
+			{
+				encode = 0;
+				continue;
+			}
 			else
 			{
 				filenameIn = argv[i];
-				Decode(filenameIn, filenameOut, isList);
+				if (encode)
+					Encode(filenameIn, filenameOut, isList);
+				else
+					Decode(filenameIn, filenameOut, isList);
 				filenameOut = "";
 			}
 		}

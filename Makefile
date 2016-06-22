@@ -5,7 +5,8 @@ ifdef PROFILE
 CXXFLAGS+= -pg -g
 endif
 ifdef DEBUG
-CXXFLAGS:=-Og -ggdb -march=native $(CXXFLAGS)
+CXXFLAGS:=-O1 -ggdb -march=native $(CXXFLAGS)
+CPPFLAGS+=-D_DEBUG
 else
 CXXFLAGS:=-O3 -s -march=native $(CXXFLAGS)
 endif
@@ -19,11 +20,12 @@ LDFLAGS+=$(shell $(PKGCONFIG) sndfile --libs)
 endif
 ifdef PROFILE
 LDFLAGS+=-pg -g
-endif
+else
 ifdef DEBUG
 LDFLAGS+=-ggdb
 else
 LDFLAGS+=-s
+endif
 endif
 
 SRCS=clHCA.cpp  main.cpp  Path.cpp
