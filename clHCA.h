@@ -278,7 +278,7 @@ PACKED(
 		void Decode2(int32_t a, int32_t b, const uint8_t* ath) FUNCHOT;
 		void Decode3(void) FUNCHOT;
 		void Decode4(clData* data) FUNCHOT;
-		void Decode5(int32_t index) FUNCHOT;
+		void Decode5(int32_t index, clHCA::stChannel s) FUNCHOT;
 		void Decode6(void) FUNCHOT;
 		void Decode7(void) FUNCHOT;
 		void Decode8(int32_t index) FUNCHOT;
@@ -286,7 +286,7 @@ PACKED(
 		void Encode2(int32_t *a, int32_t *b, const uint8_t* ath);
 		void Encode3(void);
 		void Encode4(clData* data);
-		void Encode5(int32_t index);
+		void Encode5(int32_t index, clHCA::stChannel s);
 		void Encode6(void);
 		void Encode7(void);
 		void Encode8(int32_t index);
